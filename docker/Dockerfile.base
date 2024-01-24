@@ -1,0 +1,25 @@
+# syntax=docker/dockerfile:1.4
+FROM python:3.12 AS BASE
+
+# required for collectstatic command to work
+ENV DATABASE_URL=postgres://xxx:xxx@xxx/xxx
+ENV DJANGO_SETTINGS_MODULE=config.settings.local
+ENV AWS_S3_UPLOADS_DOMAIN=""
+ENV AWS_S3_STATIC_DOMAIN=""
+ENV DOCKER_BUILD=True
+
+WORKDIR /app
+
+RUN pip3 install poetry
+
+COPY poetry.lock .
+COPY poetry.toml .
+COPY pyproject.toml .
+
+RUN poetry install --no-root --no-interaction
+
+COPY project project
+
+RUN poetry install
+
+ENTRYPOINT ["poetry", "run"]

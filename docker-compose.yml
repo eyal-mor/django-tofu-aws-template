@@ -1,0 +1,114 @@
+version: '3'
+
+x-shared-depends: &shared-depends
+  sqs:
+    condition: service_started
+  init-web:
+    condition: service_completed_successfully
+
+x-shared-server: &shared-server
+  working_dir: /app/project
+  image: project-django-base
+  links:
+    - postgres:postgres
+  volumes:
+    - .:/app/
+    - /app/.venv
+    - /app/project/staticfiles
+    - /app/volume
+  env_file:
+    - .env
+
+services:
+  web:
+    restart: always
+    <<: *shared-server
+    ports:
+      - "8000:8000"
+      - "5678:5678"
+    depends_on:
+      <<: *shared-depends
+    command: python -m debugpy --listen 0.0.0.0:5678 -m uvicorn config.asgi:application --host 0.0.0.0 --port 8000 --reload
+
+  # celery:
+  #   restart: always
+  #   <<: *shared-server
+  #   depends_on:
+  #     <<: *shared-depends
+  #   celery -A project worker -l debug
+  #   command: poetry run python -m debugpy --listen 0.0.0.0:6900 -m celery -A backend.celery worker -l info
+
+  sqs:
+    image: softwaremill/elasticmq-native
+    ports:
+      - 9324:9324
+      - 9325:9325
+
+  postgres:
+    restart: always
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_PASSWORD=password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+    # command: ["postgres", "-c", "log_statement=all"]
+
+  minio:
+    image: 'minio/minio:latest'
+    ports:
+      - '${FORWARD_MINIO_PORT:-9000}:9000'
+      - '${FORWARD_MINIO_CONSOLE_PORT:-9090}:9090'
+    environment:
+      MINIO_ROOT_USER: 'root'
+      MINIO_ROOT_PASSWORD: 'password'
+    volumes:
+      - './minio:/data'
+    command: server /data --console-address ":9090"
+    # healthcheck:
+    #   test: ["CMD-SHELL"]
+
+
+  minio-create-buckets:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_started
+        ## To create Bucket with no public policy, add the following lines
+        ## after configuring the host, but before "exit 0;"
+        ## change "bucketnpa" to your desired bucket name
+        ##
+        ## /usr/bin/mc mb minio/bucketnpa;
+        ## /usr/bin/mc policy none minio/bucketnpa;
+    entrypoint: >
+        /bin/sh -c "
+        /usr/bin/mc config host add minio http://minio:9000 root password;
+        /usr/bin/mc mb minio/static;
+        /usr/bin/mc mb minio/uploads;
+        /usr/bin/mc anonymous set public minio/static;
+        /usr/bin/mc anonymous set public minio/uploads;
+        exit 0;
+        "
+
+  init-db:
+    image: postgres:latest
+    volumes:
+      - ./init.sql:/tmp/init.sql
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: env PGPASSWORD=password psql -h postgres -U postgres -f /tmp/init.sql
+
+  # Run migration on init.
+  init-web:
+    <<: *shared-server
+    depends_on:
+      init-db:
+        condition: service_completed_successfully
+    command: bash -c './manage.py collectstatic --noinput; ./manage.py migrate;'

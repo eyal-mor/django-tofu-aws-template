@@ -1,0 +1,37 @@
+version: '3'
+
+services:
+  web:
+    restart: always
+    working_dir: /app/Project
+    network_mode: host
+    image: XXX.dkr.ecr.us-east-1.amazonaws.com/XXX:${TAG}
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      celery:
+        condition: service_started
+      init-web:
+        condition: service_completed_successfully
+    command: python3 -m gunicorn Project.asgi:application --bind 0.0.0.0 -k uvicorn.workers.UvicornWorker
+
+
+  celery:
+    restart: always
+    working_dir: /app/Project
+    network_mode: host
+    image: XXX.dkr.ecr.us-east-1.amazonaws.com/XXX:${TAG}
+    command: celery -A Project worker -l debug
+    env_file:
+      - .env
+
+  # Run migration on init.
+  init-web:
+    working_dir: /app/Project
+    network_mode: host
+    image: XXX.dkr.ecr.us-east-1.amazonaws.com/XXX:${TAG}
+    env_file:
+      - .env
+    command: ./manage.py migrate
