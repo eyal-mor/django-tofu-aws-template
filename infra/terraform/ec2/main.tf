@@ -2,7 +2,10 @@ resource "aws_launch_template" "launch_template" {
   name_prefix            = "launch"
   image_id               = "ami-0230bd60aa48260c6"
   instance_type          = "t2.micro"
-  vpc_security_group_ids = ["sg-08f43c378913683b1"]
+  vpc_security_group_ids = [
+    aws_security_group.allow_lb.id,
+    aws_security_group.allow_db.id,
+  ]
 
   update_default_version = true
 
@@ -56,5 +59,27 @@ resource "aws_autoscaling_group" "asg" {
   launch_template {
     id      = aws_launch_template.launch_template.id
     version = aws_launch_template.launch_template.latest_version
+  }
+}
+
+resource "aws_security_group" "ec2_in" {
+  name        = "${var.project_name}-ec2_in"
+  description = "Allows inbound from public network"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    from_port   = 443
+    to_port     = var.target_port
+    protocol    = "tcp"
+    security_groups = [
+      var.load_balancer_security_group_id
+    ]
+  }
+
+  egress {
+    from_port = 0
+    to_port   = 0
+    protocol  = "-1"
+    cidr_blocks = []
   }
 }

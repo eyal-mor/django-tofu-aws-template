@@ -5,8 +5,8 @@ module "db" {
 
   engine            = "postgres"
   engine_version    = "16.1"
-  instance_class    = "db.t4a.small"
-  allocated_storage = 30
+  instance_class    = "db.t3.micro"
+  allocated_storage = 20
 
   db_name  = "${var.project_name}-db"
   username = "user"
@@ -14,9 +14,9 @@ module "db" {
 
   iam_database_authentication_enabled = true
 
-  vpc_security_group_ids = [var.db_sg_ids]
+  vpc_security_group_ids = [aws_security_group.allow_db.id]
 
-  maintenance_window = "Sat:00:00-Sat:03:00"
+  maintenance_window = "Fri:00:00-Fri:03:00"
   backup_window      = "03:00-06:00"
 
   # DB subnet group
@@ -39,5 +39,32 @@ module "db" {
     },
   ]
 
+  # TODO: Snapshots & Backups support.
+}
 
+resource "aws_security_group" "allow_db" {
+  name        = "${var.project_name}-allow_db"
+  description = "Allows inbound from private network"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    security_groups = []
+    cidr_blocks = var.private_network_cidrs
+  }
+
+  egress {
+    from_port = 0
+    to_port   = 0
+    protocol  = "-1"
+    cidr_blocks = [
+      "0.0.0.0/0"
+    ]
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }

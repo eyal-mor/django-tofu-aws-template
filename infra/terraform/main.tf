@@ -1,8 +1,36 @@
-resource "aws_s3_bucket" "s3_bucket" {
+data "aws_region" "current" {}
+
+module "vpc" {
+  source = "terraform-aws-modules/vpc/aws"
+
+  name = "${project_name}-vpc"
+  cidr = "10.0.0.0/16"
+
+  azs              = ["${aws_region.current.name}a", "${aws_region.current.name}b", "${aws_region.current.name}c"]
+  private_subnets  = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+  database_subnets = ["10.0.201.0/26", "10.0.201.64/26", "10.0.201.128/26"]
+  public_subnets   = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
+
+
+  enable_nat_gateway     = true
+  single_nat_gateway     = true
+  one_nat_gateway_per_az = false
+  enable_vpn_gateway     = false
+}
+
+# Django uploads bucket
+resource "aws_s3_bucket" "uploads" {
   bucket = var.bucket_name
   tags   = var.tags
 }
 
+# Django static bucket
+resource "aws_s3_bucket" "static" {
+  bucket = var.bucket_name
+  tags   = var.tags
+}
+
+# Celery Queue (Default one, more can be created outside the module)
 resource "aws_sqs_queue" "celery_queue" {
   name                      = var.celery_queue_name
   delay_seconds             = 10
@@ -11,13 +39,24 @@ resource "aws_sqs_queue" "celery_queue" {
   receive_wait_time_seconds = 10
 }
 
+module "rds" {
+  source = "./rds"
+
+  db_sg_ids     = var.db_sg_ids
+  db_subnet_ids = module.vpc.database_subnets
+  project_name  = var.project_name
+  vpc_id        = module.vpc.vpc_id
+  private_network_cidrs = module.vpc.private_subnets
+}
+
 module "loadbalancer" {
-  source            = "./loadbalancer"
+  source = "./loadbalancer"
   count  = var.local ? 0 : 1
 
   security_group_id = var.security_group_id
   project_name      = var.project_name
   domain_name       = var.domain_name
+  subnet_ids        = module.vpc.public_subnets
 }
 
 module "ec2" {
@@ -34,3 +73,4 @@ module "ec2" {
   target_group_arns                  = module.loadbalancer[0].target_group_arns
   project_name                       = var.project_name
 }
+

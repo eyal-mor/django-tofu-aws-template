@@ -1,5 +1,5 @@
 data "aws_acm_certificate" "domain_cert" {
-  domain      = "${var.domain_name}"
+  domain      = var.domain_name
   statuses    = ["ISSUED"]
   most_recent = true
 }
@@ -8,8 +8,10 @@ resource "aws_lb" "loadbalancer" {
   name               = "${var.project_name}-loadbalancer"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = ["sg-09b1b44be29e16d93"]
-  subnets            = ["subnet-0f6eb80d10f7730ba", "subnet-00280766c2869476f"]
+  security_groups    = [
+    aws_security_group.allow_lb.id
+  ]
+  subnets            = var.subnet_ids
 
 
   enable_deletion_protection = false
@@ -17,9 +19,9 @@ resource "aws_lb" "loadbalancer" {
 
 resource "aws_lb_target_group" "tg" {
   name     = "${var.project_name}-target-group"
-  port     = 8000
+  port     = var.target_port
   protocol = "HTTP"
-  vpc_id   = "vpc-0f63f41b8f4295c58"
+  vpc_id   = var.vpc_id
 
   health_check {
     enabled             = true
@@ -63,3 +65,38 @@ resource "aws_lb_listener" "forward_redirect" {
   }
 }
 
+resource "aws_security_group" "allow_lb" {
+  name        = "${var.project_name}-allow_lb"
+  description = "Allows inbound from public network"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    security_groups = [
+      var.ec2_security_group_id
+    ]
+    cidr_blocks = var.public_cidr_blocks
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = var.public_cidr_blocks
+  }
+
+  egress {
+    from_port = 0
+    to_port   = 0
+    protocol  = "-1"
+    cidr_blocks = [
+      "0.0.0.0/0"
+    ]
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}

@@ -1,3 +1,19 @@
+variable "vpc_id" {
+  description = "VPC id"
+  type        = string
+}
+
+variable "load_balancer_security_group_id" {
+  description = "value of the load balancer security group id"
+  type = string
+}
+
+variable "target_port" {
+  description = "value of the target port"
+  type = number
+}
+
+
 variable "django_settings_module" {
   type = string
 }

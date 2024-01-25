@@ -45,7 +45,7 @@ variable "rds_port" {
 }
 
 variable "database_name" {
-  type    = string
+  type = string
 }
 
 variable "docker_tag" {
