@@ -9,11 +9,10 @@ resource "aws_lb" "loadbalancer" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [
-    aws_security_group.allow_lb.id
+    var.security_group_id
   ]
+
   subnets            = var.subnet_ids
-
-
   enable_deletion_protection = false
 }
 
@@ -62,41 +61,5 @@ resource "aws_lb_listener" "forward_redirect" {
       protocol    = "HTTPS"
       status_code = "HTTP_301"
     }
-  }
-}
-
-resource "aws_security_group" "allow_lb" {
-  name        = "${var.project_name}-allow_lb"
-  description = "Allows inbound from public network"
-  vpc_id      = var.vpc_id
-
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    security_groups = [
-      var.ec2_security_group_id
-    ]
-    cidr_blocks = var.public_cidr_blocks
-  }
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = var.public_cidr_blocks
-  }
-
-  egress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    cidr_blocks = [
-      "0.0.0.0/0"
-    ]
-  }
-
-  lifecycle {
-    create_before_destroy = true
   }
 }

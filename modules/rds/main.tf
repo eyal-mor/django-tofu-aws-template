@@ -14,10 +14,10 @@ module "db" {
 
   iam_database_authentication_enabled = true
 
-  vpc_security_group_ids = [aws_security_group.allow_db.id]
+  vpc_security_group_ids = var.db_sg_ids
 
   maintenance_window = "Fri:00:00-Fri:03:00"
-  backup_window      = "03:00-06:00"
+  backup_window      = "16:00-19:00"
 
   # DB subnet group
   create_db_subnet_group = false
@@ -38,33 +38,6 @@ module "db" {
       value = "30000"
     },
   ]
-
-  # TODO: Snapshots & Backups support.
 }
 
-resource "aws_security_group" "allow_db" {
-  name        = "${var.project_name}-allow_db"
-  description = "Allows inbound from private network"
-  vpc_id      = var.vpc_id
-
-  ingress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    security_groups = []
-    cidr_blocks = var.private_network_cidrs
-  }
-
-  egress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    cidr_blocks = [
-      "0.0.0.0/0"
-    ]
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
+# TODO: Snapshots & Backups support.

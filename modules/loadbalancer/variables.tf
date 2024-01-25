@@ -23,12 +23,12 @@ variable "public_cidr_blocks" {
   type = list(string)
 }
 
-variable "ec2_security_group_id" {
-  description = "value of the ec2 security group id"
-  type = string
-}
-
 variable "target_port" {
   description = "value of the target port"
   type = number
+}
+
+variable "security_group_id" {
+  description = "value of the security group id"
+  type = string
 }

@@ -17,7 +17,6 @@ services:
         condition: service_completed_successfully
     command: python3 -m gunicorn Project.asgi:application --bind 0.0.0.0 -k uvicorn.workers.UvicornWorker
 
-
   celery:
     restart: always
     working_dir: /app/Project

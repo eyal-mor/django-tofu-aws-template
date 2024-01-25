@@ -3,7 +3,7 @@ variable "vpc_id" {
   type        = string
 }
 
-variable "load_balancer_security_group_id" {
+variable "ec2_security_group_id" {
   description = "value of the load balancer security group id"
   type = string
 }
@@ -48,4 +48,16 @@ variable "compose_file" {
 
 variable "target_group_arns" {
   type = list(string)
+}
+
+variable "s3_uploads_bucket_arn" {
+  type = string
+}
+
+variable "s3_static_bucket_arn" {
+  type = string
+}
+
+variable "celery_queue_arn" {
+  type = string
 }

@@ -13,7 +13,7 @@ variable "vpc_id" {
   type        = string
 }
 
-variable "private_network_cidrs" {
-  description = "Private network CIDRs"
+variable "db_sg_ids" {
+  description = "value of the db security group id"
   type        = list(string)
 }

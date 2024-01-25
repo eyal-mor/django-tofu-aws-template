@@ -1,19 +1,44 @@
+# Terraform Module for Running Django with Open Tofu
 
+This project provides a Terraform module for deploying a Django application with Open Tofu. It includes examples of using Terragrunt, Docker, and GitHub Actions.
 
-Tricks:
-# Restart DB from scratch:
-```shell
-make down
-rm -rf pgdata
-make up
+## Overview
+
+This module deploys a Django application using Open Tofu, a lightweight and flexible framework for building web applications. The module is designed to be used with AWS, but can be adapted for other cloud providers.
+
+## Features
+
+- **Terraform**: Infrastructure as Code (IaC) tool for managing and provisioning cloud resources.
+- **Terragrunt**: A thin wrapper for Terraform that provides extra tools for working with multiple Terraform modules.
+- **Docker**: Containerization platform used to package the Django application and its dependencies into a single, standalone unit.
+- **GitHub Actions**: CI/CD tool for automating build, test, and deploy workflows.
+
+## Usage
+
+To use this module, you'll need to have Terraform and Terragrunt installed. You'll also need an AWS account and your AWS credentials set up.
+
+```hcl
+module "django_open_tofu" {
+  source = "github.com/yourorg/django-open-tofu"
+
+  # ... other variables ...
+}
 ```
 
-# Makemigrations:
-```shell
-make ARGS="makemigrations" django_manage
-```
+Then, run `terragrunt apply` to create the resources.
 
-# Create-superuser:
-```shell
-make ARGS="createsuperuser" django_manage
-```
+## Examples
+
+This project includes several examples:
+
+- **Terragrunt**: See the `terragrunt.hcl` file for an example of how to use Terragrunt with this module.
+- **Docker**: See the `Dockerfile` for an example of how to containerize a Django application.
+- **GitHub Actions**: See the `.github/workflows` directory for examples of GitHub Actions workflows.
+
+## Contributing
+
+Contributions to this project are welcome! Please submit a pull request or open an issue if you have something to contribute.
+
+## License
+
+This project is licensed under the MIT License. See the `LICENSE` file for more details.

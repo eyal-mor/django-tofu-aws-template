@@ -8,25 +8,9 @@ variable "domain_name" {
   type        = string
 }
 
-variable "bucket_name" {
+variable "bucket_name_prefix" {
   description = "Name of the s3 bucket. Must be unique."
   type        = string
-}
-
-variable "celery_queue_name" {
-  description = "Name of the celery sqs queue. Must be unique."
-  type        = string
-}
-
-variable "tags" {
-  description = "Tags to set on the bucket."
-  type        = map(string)
-  default     = {}
-}
-
-variable "local" {
-  type    = bool
-  default = true
 }
 
 variable "django_settings_module" {
@@ -60,6 +44,7 @@ variable "secrets_manager_django_secret_path" {
   type = string
 }
 
-variable "security_group_id" {
-  type = string
+variable "target_port" {
+  description = "exposed target port of the container within the ec2 instance"
+  type = number
 }

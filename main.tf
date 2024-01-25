@@ -18,21 +18,29 @@ module "vpc" {
   enable_vpn_gateway     = false
 }
 
+module "sg" {
+  source ="./modules/securitygroups"
+
+  vpc_id = module.vpc.vpc_id
+  public_cidr_blocks = module.vpc.public_subnets
+  project_name = var.project_name
+  private_cidr_blocks = module.vpc.private_subnets
+  target_port = var.target_port
+}
+
 # Django uploads bucket
 resource "aws_s3_bucket" "uploads" {
-  bucket = var.bucket_name
-  tags   = var.tags
+  bucket = "${var.bucket_name_prefix}_uploads"
 }
 
 # Django static bucket
 resource "aws_s3_bucket" "static" {
-  bucket = var.bucket_name
-  tags   = var.tags
+  bucket = "${var.bucket_name_prefix}_static"
 }
 
 # Celery Queue (Default one, more can be created outside the module)
 resource "aws_sqs_queue" "celery_queue" {
-  name                      = var.celery_queue_name
+  name                      = "${var.project_name}-celery-queue"
   delay_seconds             = 10
   max_message_size          = 2048
   message_retention_seconds = 86400
@@ -40,28 +48,28 @@ resource "aws_sqs_queue" "celery_queue" {
 }
 
 module "rds" {
-  source = "./rds"
+  source = "./modules/rds"
 
-  db_sg_ids     = var.db_sg_ids
+  db_sg_ids     = [module.sg.db_sg_id]
   db_subnet_ids = module.vpc.database_subnets
   project_name  = var.project_name
   vpc_id        = module.vpc.vpc_id
-  private_network_cidrs = module.vpc.private_subnets
 }
 
 module "loadbalancer" {
-  source = "./loadbalancer"
-  count  = var.local ? 0 : 1
+  source = "./modules/loadbalancer"
 
-  security_group_id = var.security_group_id
+  security_group_id = module.sg.lb_sg_id
   project_name      = var.project_name
   domain_name       = var.domain_name
   subnet_ids        = module.vpc.public_subnets
+  vpc_id = module.vpc.vpc_id
+  target_port = var.target_port
+  public_cidr_blocks =  module.vpc.public_subnets
 }
 
 module "ec2" {
-  source = "./ec2"
-  count  = var.local ? 0 : 1
+  source = "./modules/ec2"
 
   database_name                      = var.database_name
   django_settings_module             = var.django_settings_module
@@ -72,5 +80,11 @@ module "ec2" {
   compose_file                       = templatefile("${path.module}/docker-compose-release.yaml", { TAG = var.docker_tag })
   target_group_arns                  = module.loadbalancer[0].target_group_arns
   project_name                       = var.project_name
+  target_port = var.target_port
+  vpc_id = module.vpc.vpc_id
+  ec2_security_group_id = module.sg.ec2_sg_id
+  s3_static_bucket_arn = aws_s3_bucket.static.arn
+  s3_uploads_bucket_arn = aws_s3_bucket.uploads.arn
+  celery_queue_arn = aws_sqs_queue.celery_queue.arn
 }
 
