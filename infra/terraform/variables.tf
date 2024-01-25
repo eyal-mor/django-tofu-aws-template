@@ -1,5 +1,20 @@
+variable "project_name" {
+  description = "Name of the project."
+  type        = string
+}
+
+variable "domain_name" {
+  description = "Domain name of the project."
+  type        = string
+}
+
 variable "bucket_name" {
   description = "Name of the s3 bucket. Must be unique."
+  type        = string
+}
+
+variable "celery_queue_name" {
+  description = "Name of the celery sqs queue. Must be unique."
   type        = string
 }
 
@@ -24,11 +39,6 @@ variable "django_env" {
   default = "staging"
 }
 
-variable "rds_url" {
-  type    = string
-  default = ""
-}
-
 variable "rds_port" {
   type    = string
   default = "5432"
@@ -36,7 +46,6 @@ variable "rds_port" {
 
 variable "database_name" {
   type    = string
-  default = "Project"
 }
 
 variable "docker_tag" {

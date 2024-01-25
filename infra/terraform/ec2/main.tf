@@ -12,7 +12,6 @@ resource "aws_launch_template" "launch_template" {
       {
         DJANGO_SETTINGS_MODULE             = var.django_settings_module
         DJANGO_ENV                         = var.django_env
-        RDS_URL                            = var.rds_url
         RDS_PORT                           = var.rds_port
         SECRETS_MANAGER_RDS_PATH           = var.secrets_manager_rds_path
         SECRETS_MANAGER_DJANGO_SECRET_PATH = var.secrets_manager_django_secret_path
@@ -24,17 +23,17 @@ resource "aws_launch_template" "launch_template" {
     )
   )
 
-  key_name = "Project"
+  key_name = var.project_name
 
   iam_instance_profile {
-    name = "ProjectInsecureRole"
+    name = "${var.project_name}InsecureRole"
   }
 
   tag_specifications {
     resource_type = "instance"
 
     tags = {
-      Name = "Project"
+      Name = "${var.project_name}"
     }
   }
 }
@@ -45,7 +44,7 @@ resource "aws_autoscaling_group" "asg" {
   max_size           = 2
   min_size           = 1
 
-  name_prefix       = "Project-"
+  name_prefix       = "${var.project_name}-"
   target_group_arns = var.target_group_arns
 
   termination_policies = ["OldestLaunchTemplate", "OldestLaunchConfiguration"]

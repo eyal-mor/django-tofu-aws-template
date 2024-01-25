@@ -2,11 +2,11 @@ variable "django_settings_module" {
   type = string
 }
 
-variable "django_env" {
+variable "project_name" {
   type = string
 }
 
-variable "rds_url" {
+variable "django_env" {
   type = string
 }
 

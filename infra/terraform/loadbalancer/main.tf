@@ -1,11 +1,11 @@
-data "aws_acm_certificate" "Project-api" {
-  domain      = "api.Project.io"
+data "aws_acm_certificate" "domain_cert" {
+  domain      = "${var.domain_name}"
   statuses    = ["ISSUED"]
   most_recent = true
 }
 
-resource "aws_lb" "Project" {
-  name               = "Project"
+resource "aws_lb" "loadbalancer" {
+  name               = "${var.project_name}-loadbalancer"
   internal           = false
   load_balancer_type = "application"
   security_groups    = ["sg-09b1b44be29e16d93"]
@@ -15,8 +15,8 @@ resource "aws_lb" "Project" {
   enable_deletion_protection = false
 }
 
-resource "aws_lb_target_group" "Project" {
-  name     = "Project"
+resource "aws_lb_target_group" "tg" {
+  name     = "${var.project_name}-target-group"
   port     = 8000
   protocol = "HTTP"
   vpc_id   = "vpc-0f63f41b8f4295c58"
@@ -34,21 +34,21 @@ resource "aws_lb_target_group" "Project" {
 
 
 resource "aws_lb_listener" "forward_tls" {
-  load_balancer_arn = aws_lb.Project.arn
+  load_balancer_arn = aws_lb.loadbalancer.arn
   port              = "443"
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = data.aws_acm_certificate.Project-api.arn
+  certificate_arn   = data.aws_acm_certificate.domain_cert.arn
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.Project.arn
+    target_group_arn = aws_lb_target_group.tg.arn
   }
 
 }
 
 resource "aws_lb_listener" "forward_redirect" {
-  load_balancer_arn = aws_lb.Project.arn
+  load_balancer_arn = aws_lb.loadbalancer.arn
   port              = "80"
   protocol          = "HTTP"
 
