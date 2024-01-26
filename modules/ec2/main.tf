@@ -93,7 +93,7 @@ resource "aws_launch_template" "launch_template" {
         {
           # This file is what causes the changes that create a deployment.
           # Without an update on this file, launch config will not update, which won't cause a rolling upgrade.
-          compose_file = var.compose_file
+          COMPOSE_FILE = var.compose_file
         }
       )
     )

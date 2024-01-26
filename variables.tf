@@ -15,12 +15,11 @@ variable "bucket_name_prefix" {
 
 variable "django_env" {
   description = "value of the django environment"
-  type        = map(string, string)
+  type        = map(string)
 }
 
-variable "rds_port" {
-  type    = string
-  default = "5432"
+variable "compose_file" {
+  type = string
 }
 
 variable "docker_tag" {

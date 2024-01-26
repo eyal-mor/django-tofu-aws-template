@@ -77,7 +77,7 @@ module "ec2" {
 
   django_env             = var.django_env
   rds_port               = var.rds_port
-  compose_file           = templatefile("${path.module}/docker-compose-release.yaml", { TAG = var.docker_tag })
+  compose_file           = var.compose_file
   target_group_arns      = module.loadbalancer[0].target_group_arns
   project_name           = var.project_name
   target_port            = var.target_port

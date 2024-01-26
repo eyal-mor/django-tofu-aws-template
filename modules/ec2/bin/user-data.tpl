@@ -26,7 +26,7 @@ DJANGO_ENV="${DJANGO_ENV}"
 EOL
 
 cat >/home/ec2-user/docker-compose.yaml <<EOL
-${compose_file}
+${COMPOSE_FILE}
 EOL
 
 cd /home/ec2-user/

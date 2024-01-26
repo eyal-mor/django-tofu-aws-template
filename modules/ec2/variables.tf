@@ -10,19 +10,15 @@ variable "ec2_security_group_id" {
 
 variable "target_port" {
   description = "value of the target port"
-  type        = number
+  type        = numbert
 }
 
 variable django_env {
   description = "value of the django environment"
-  type        = map(string, string)
+  type        = map(string)
 }
 
 variable "project_name" {
-  type = string
-}
-
-variable "rds_port" {
   type = string
 }
 
