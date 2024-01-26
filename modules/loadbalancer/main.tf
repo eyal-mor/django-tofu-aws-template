@@ -8,11 +8,11 @@ resource "aws_lb" "loadbalancer" {
   name               = "${var.project_name}-loadbalancer"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [
+  security_groups = [
     var.security_group_id
   ]
 
-  subnets            = var.subnet_ids
+  subnets                    = var.subnet_ids
   enable_deletion_protection = false
 }
 
@@ -35,6 +35,8 @@ resource "aws_lb_target_group" "tg" {
 
 
 resource "aws_lb_listener" "forward_tls" {
+  count = var.domain_name ? 1 : 0
+
   load_balancer_arn = aws_lb.loadbalancer.arn
   port              = "443"
   protocol          = "HTTPS"

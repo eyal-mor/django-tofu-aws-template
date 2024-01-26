@@ -5,7 +5,7 @@ services:
     restart: always
     working_dir: /app/Project
     network_mode: host
-    image: XXX.dkr.ecr.us-east-1.amazonaws.com/XXX:${TAG}
+    image: ${DOCKER_REGISTRY_URL}:${TAG}
     ports:
       - "8000:8000"
     env_file:
@@ -21,7 +21,7 @@ services:
     restart: always
     working_dir: /app/Project
     network_mode: host
-    image: XXX.dkr.ecr.us-east-1.amazonaws.com/XXX:${TAG}
+    image: ${DOCKER_REGISTRY_URL}:${TAG}
     command: celery -A Project worker -l debug
     env_file:
       - .env
@@ -30,7 +30,7 @@ services:
   init-web:
     working_dir: /app/Project
     network_mode: host
-    image: XXX.dkr.ecr.us-east-1.amazonaws.com/XXX:${TAG}
+    image: ${DOCKER_REGISTRY_URL}:${TAG}
+    command: ./manage.py migrate
     env_file:
       - .env
-    command: ./manage.py migrate

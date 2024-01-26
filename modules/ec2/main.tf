@@ -14,23 +14,12 @@ data "aws_iam_policy_document" "assume_policy" {
 }
 
 resource "aws_iam_role" "ec2_instance_role" {
-  name = "${var.project_name}Role"
+  name               = "${var.project_name}Role"
   assume_role_policy = data.aws_iam_policy_document.assume_policy.json
 }
 
 
 data "aws_iam_policy_document" "policy" {
-  statement {
-    actions = [
-      "secretsmanager:GetSecretValue",
-    ]
-
-    resources = [
-      var.secrets_manager_rds_path,
-      var.secrets_manager_django_secret_path,
-    ]
-  }
-
   statement {
     actions = [
       "s3:ListBucket",
@@ -87,9 +76,9 @@ resource "aws_iam_instance_profile" "ec2_instance_profile" {
 }
 
 resource "aws_launch_template" "launch_template" {
-  name_prefix            = "launch"
-  image_id               = "ami-0230bd60aa48260c6"
-  instance_type          = "t2.micro"
+  name_prefix   = "launch"
+  image_id      = "ami-0230bd60aa48260c6"
+  instance_type = "t2.micro"
   vpc_security_group_ids = [
     var.ec2_security_group_id
   ]
@@ -99,17 +88,14 @@ resource "aws_launch_template" "launch_template" {
   user_data = base64encode(
     templatefile(
       "${path.module}/bin/user-data.tpl",
-      {
-        DJANGO_SETTINGS_MODULE             = var.django_settings_module
-        DJANGO_ENV                         = var.django_env
-        RDS_PORT                           = var.rds_port
-        SECRETS_MANAGER_RDS_PATH           = var.secrets_manager_rds_path
-        SECRETS_MANAGER_DJANGO_SECRET_PATH = var.secrets_manager_django_secret_path
-        DATABASE_NAME                      = var.database_name
-        # This file is what causes the changes that create a deployment.
-        # Without an update on this file, launch config will not update, which won't cause a rolling upgrade.
-        compose_file = var.compose_file
-      }
+      merge(
+        var.django_env,
+        {
+          # This file is what causes the changes that create a deployment.
+          # Without an update on this file, launch config will not update, which won't cause a rolling upgrade.
+          compose_file = var.compose_file
+        }
+      )
     )
   )
 

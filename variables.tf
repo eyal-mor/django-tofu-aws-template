@@ -13,14 +13,9 @@ variable "bucket_name_prefix" {
   type        = string
 }
 
-variable "django_settings_module" {
-  type    = string
-  default = "config.settings.staging"
-}
-
 variable "django_env" {
-  type    = string
-  default = "staging"
+  description = "value of the django environment"
+  type        = map(string, string)
 }
 
 variable "rds_port" {
@@ -28,23 +23,35 @@ variable "rds_port" {
   default = "5432"
 }
 
-variable "database_name" {
-  type = string
-}
-
 variable "docker_tag" {
-  type = string
-}
-
-variable "secrets_manager_rds_path" {
-  type = string
-}
-
-variable "secrets_manager_django_secret_path" {
   type = string
 }
 
 variable "target_port" {
   description = "exposed target port of the container within the ec2 instance"
-  type = number
+  type        = number
+}
+
+variable "vpc_cidr" {
+  description = "CIDR of the VPC"
+  type        = string
+  default     = "10.0.0.0/16"
+}
+
+variable "private_subnets" {
+  description = "Private subnets of the VPC"
+  type        = list(string)
+  default     = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+}
+
+variable "database_subnets" {
+  description = "Private subnets of the VPC"
+  type        = list(string)
+  default     = ["10.0.201.0/26", "10.0.201.64/26", "10.0.201.128/26"]
+}
+
+variable "public_subnets" {
+  description = "Public subnets of the VPC"
+  type        = list(string)
+  default     = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
 }

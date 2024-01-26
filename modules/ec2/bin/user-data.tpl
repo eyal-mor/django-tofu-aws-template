@@ -18,19 +18,11 @@ cat >/home/ec2-user/.docker/config.json <<EOL
 }
 EOL
 
-aws ecr get-login-password | docker login --username AWS --password-stdin XXXX.dkr.ecr.us-east-1.amazonaws.com/XXXX
-
-RDS_SECRETS=$(aws secretsmanager get-secret-value --secret-id "${SECRETS_MANAGER_RDS_PATH}" | jq '.SecretString' | jq -r)
-RDS_USER=$(echo $RDS_SECRETS | jq -r '.username')
-# The python script urlencodes the password, this is due to some edge cases in python where specific characters can break parsing libraries (e.g. celery)
-RDS_PASSWORD=$(echo $RDS_SECRETS | jq -r '.password' | python3 -c "import sys; from urllib import parse; sys.stdout.write(parse.quote_plus(sys.stdin.read().rstrip()))")
-DJANGO_SECRET_KEY=$(aws secretsmanager get-secret-value --secret-id "${SECRETS_MANAGER_DJANGO_SECRET_PATH}" | jq '.SecretString' | jq -r | jq -r '.SECRET_KEY')
+aws ecr get-login-password | docker login --username AWS --password-stdin ${DOCKER_REGISTRY_URL}
 
 cat > /home/ec2-user/.env << EOL
 DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE}"
 DJANGO_ENV="${DJANGO_ENV}"
-SECRET_KEY="$${DJANGO_SECRET_KEY}"
-DATABASE_URL="postgres://$${RDS_USER}:$${RDS_PASSWORD}@${RDS_URL}:${RDS_PORT}/${DATABASE_NAME}"
 EOL
 
 cat >/home/ec2-user/docker-compose.yaml <<EOL
