@@ -58,7 +58,7 @@ data "aws_iam_policy_document" "policy" {
     ]
 
     resources = [
-      "${aws_db_instance.rds_instance.arn}",
+      "${var.rds_instance_arn}",
     ]
   }
 }
@@ -94,6 +94,7 @@ resource "aws_launch_template" "launch_template" {
           # This file is what causes the changes that create a deployment.
           # Without an update on this file, launch config will not update, which won't cause a rolling upgrade.
           COMPOSE_FILE = var.compose_file
+          RDS_HOST     = var.rds_instance_address
         }
       )
     )

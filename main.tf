@@ -75,17 +75,16 @@ resource "aws_secretsmanager_secret" "project_secrets" {
 module "ec2" {
   source = "./modules/ec2"
 
-  django_env             = var.django_env
-  rds_port               = var.rds_port
-  compose_file           = var.compose_file
-  target_group_arns      = module.loadbalancer[0].target_group_arns
-  project_name           = var.project_name
-  target_port            = var.target_port
-  vpc_id                 = module.vpc.vpc_id
-  ec2_security_group_id  = module.sg.ec2_sg_id
-  s3_static_bucket_arn   = aws_s3_bucket.static.arn
-  s3_uploads_bucket_arn  = aws_s3_bucket.uploads.arn
-  celery_queue_arn       = aws_sqs_queue.celery_queue.arn
+  django_env            = var.django_env
+  compose_file          = var.compose_file
+  target_group_arns     = module.loadbalancer[0].target_group_arns
+  project_name          = var.project_name
+  ec2_security_group_id = module.sg.ec2_sg_id
+  s3_static_bucket_arn  = aws_s3_bucket.static.arn
+  s3_uploads_bucket_arn = aws_s3_bucket.uploads.arn
+  celery_queue_arn      = aws_sqs_queue.celery_queue.arn
+  rds_instance_arn      = module.rds.db_instance_arn
+  rds_instance_address = module.rds.db_instance_address
 }
 
 # module "cdn" {
