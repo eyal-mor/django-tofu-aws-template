@@ -1,6 +1,6 @@
 output "ld_sg_id" {
   description = "The security group id for load balancer"
-  value       = aws_security_group.allow_ec2.id
+  value       = aws_security_group.allow_lb.id
 }
 
 output "ec2_sg_id" {

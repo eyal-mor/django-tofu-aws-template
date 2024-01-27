@@ -39,3 +39,7 @@ variable "rds_instance_arn" {
 variable "rds_instance_address" {
   type = string
 }
+
+variable "docker_registry_url" {
+  type = string
+}

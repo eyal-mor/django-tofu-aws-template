@@ -4,10 +4,10 @@ module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "5.5.1"
 
-  name = "${project_name}-vpc"
+  name = "${var.project_name}-vpc"
   cidr = var.vpc_cidr
 
-  azs              = ["${aws_region.current.name}a", "${aws_region.current.name}b", "${aws_region.current.name}c"]
+  azs              = ["${data.aws_region.current.name}a", "${data.aws_region.current.name}b", "${data.aws_region.current.name}c"]
   private_subnets  = var.private_subnets
   database_subnets = var.database_subnets
   public_subnets   = var.public_subnets
@@ -22,20 +22,26 @@ module "sg" {
   source = "./modules/securitygroups"
 
   vpc_id              = module.vpc.vpc_id
-  public_cidr_blocks  = module.vpc.public_subnets
+  public_cidr_blocks  = module.vpc.public_subnets_cidr_blocks
   project_name        = var.project_name
-  private_cidr_blocks = module.vpc.private_subnets
+  private_cidr_blocks = module.vpc.private_subnets_cidr_blocks
   target_port         = var.target_port
+}
+
+module "ecr" {
+  source = "./modules/ecr"
+
+  project_name = var.project_name
 }
 
 # Django uploads bucket
 resource "aws_s3_bucket" "uploads" {
-  bucket = "${var.bucket_name_prefix}_${var.project_name}_uploads"
+  bucket = join("-", compact([var.project_name, "uploads", var.bucket_name_postfix]))
 }
 
 # Django static bucket
 resource "aws_s3_bucket" "static" {
-  bucket = "${var.bucket_name_prefix}_${var.project_name}_static"
+  bucket = join("-", compact([var.project_name, "static", var.bucket_name_postfix]))
 }
 
 # Celery Queue (Default one, more can be created outside the module)
@@ -59,7 +65,7 @@ module "rds" {
 module "loadbalancer" {
   source = "./modules/loadbalancer"
 
-  security_group_id  = module.sg.lb_sg_id
+  security_group_id  = module.sg.ld_sg_id
   project_name       = var.project_name
   domain_name        = var.domain_name
   subnet_ids         = module.vpc.public_subnets
@@ -77,7 +83,7 @@ module "ec2" {
 
   django_env            = var.django_env
   compose_file          = var.compose_file
-  target_group_arns     = module.loadbalancer[0].target_group_arns
+  target_group_arns     = module.loadbalancer.target_group_arns
   project_name          = var.project_name
   ec2_security_group_id = module.sg.ec2_sg_id
   s3_static_bucket_arn  = aws_s3_bucket.static.arn
@@ -85,6 +91,7 @@ module "ec2" {
   celery_queue_arn      = aws_sqs_queue.celery_queue.arn
   rds_instance_arn      = module.rds.db_instance_arn
   rds_instance_address = module.rds.db_instance_address
+  docker_registry_url   = module.ecr.repository_url
 }
 
 # module "cdn" {

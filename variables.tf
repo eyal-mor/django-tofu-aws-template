@@ -8,7 +8,7 @@ variable "domain_name" {
   type        = string
 }
 
-variable "bucket_name_prefix" {
+variable "bucket_name_postfix" {
   description = "Name of the s3 bucket. Must be unique."
   type        = string
 }
@@ -34,23 +34,19 @@ variable "target_port" {
 variable "vpc_cidr" {
   description = "CIDR of the VPC"
   type        = string
-  default     = "10.0.0.0/16"
 }
 
 variable "private_subnets" {
-  description = "Private subnets of the VPC"
+  description = "Private subnets of the VPC, example: [\"10.0.1.0/24\", \"10.0.2.0/24\", \"10.0.3.0/24\"]"
   type        = list(string)
-  default     = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
 }
 
 variable "database_subnets" {
-  description = "Private subnets of the VPC"
+  description = "Private subnets of the VPC, example: [\"10.0.201.0/26\", \"10.0.201.64/26\", \"10.0.201.128/26\"]"
   type        = list(string)
-  default     = ["10.0.201.0/26", "10.0.201.64/26", "10.0.201.128/26"]
 }
 
 variable "public_subnets" {
-  description = "Public subnets of the VPC"
+  description = "Public subnets of the VPC, example: [\"10.0.101.0/24\", \"10.0.102.0/24\", \"10.0.103.0/24\"]"
   type        = list(string)
-  default     = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
 }

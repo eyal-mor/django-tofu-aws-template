@@ -71,7 +71,7 @@ resource "aws_iam_role_policy" "ec2_instance_role_policy" {
 }
 
 resource "aws_iam_instance_profile" "ec2_instance_profile" {
-  name = "${var.project_name}InsecureRole"
+  name = "${var.project_name}InstanceProfile"
   role = aws_iam_role.ec2_instance_role.name
 }
 
@@ -95,6 +95,7 @@ resource "aws_launch_template" "launch_template" {
           # Without an update on this file, launch config will not update, which won't cause a rolling upgrade.
           COMPOSE_FILE = var.compose_file
           RDS_HOST     = var.rds_instance_address
+          DOCKER_REGISTRY_URL = var.docker_registry_url
         }
       )
     )
@@ -103,7 +104,7 @@ resource "aws_launch_template" "launch_template" {
   key_name = var.project_name
 
   iam_instance_profile {
-    name = aws
+    name = aws_iam_instance_profile.ec2_instance_profile.name
   }
 
   tag_specifications {

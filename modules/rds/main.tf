@@ -23,8 +23,8 @@ module "db" {
   create_db_subnet_group = false
   subnet_ids             = var.db_subnet_ids
 
-  # DB parameter group
-  family = "postgres16.1"
+  # DB Family
+  family = "postgres16"
 
   # DB option group
   major_engine_version = "16.1"
