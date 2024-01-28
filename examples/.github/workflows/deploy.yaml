@@ -48,7 +48,7 @@ jobs:
           context: .
           file: docker/Dockerfile.base
           push: true
-          tags: "${{fromJson(steps.tofu-outputs.tg_action_output).docker_repository_url}}:${{github.sha}}"
+          tags: "${{fromJson(steps.tofu-outputs.outputs.tg_action_output).docker_repository_url}}:${{github.sha}}"
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - uses: gruntwork-io/terragrunt-action@v2
@@ -57,9 +57,10 @@ jobs:
           # Use the local copy of tofu to run terragrunt
           TERRAGRUNT_TFPATH: ${{github.workspace}}/tofu-bin
           DOCKER_TAG: ${{github.sha}}
-          DOCKER_REGISTRY_URL: ${{fromJson(steps.tofu-outputs.tg_action_output).docker_repository_url}}
+          DOCKER_REGISTRY_URL: ${{fromJson(steps.tofu-outputs.outputs.tg_action_output).docker_repository_url}}
         with:
           tg_version: 0.54.22
           tf_version: none # Use opentofu ^^^
           tg_dir: infra/staging
+          # Get the compose file and replace the env vars
           tg_command: apply -var "compose_file=$(envsubst < ${{github.workspace}}/docker-compose-release.yaml)" -var "docker_tag=${{github.sha}}" -lock-timeout=5m
