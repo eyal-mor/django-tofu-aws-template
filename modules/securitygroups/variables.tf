@@ -1,8 +1,3 @@
-variable "target_port" {
-  description = "value of the target port"
-  type        = number
-}
-
 variable "project_name" {
   description = "value of the project name"
   type        = string

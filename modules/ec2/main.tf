@@ -63,6 +63,11 @@ data "aws_iam_policy_document" "policy" {
   }
 }
 
+resource "aws_iam_role_policy_attachment" "ssm_managed" {
+  role       = aws_iam_role.ec2_instance_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
 resource "aws_iam_role_policy" "ec2_instance_role_policy" {
   name = "${var.project_name}RolePolicy"
   role = aws_iam_role.ec2_instance_role.id
@@ -75,10 +80,36 @@ resource "aws_iam_instance_profile" "ec2_instance_profile" {
   role = aws_iam_role.ec2_instance_role.name
 }
 
+data "aws_ami" "amazon_linux" {
+  most_recent      = true
+  owners           = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["al2023-*"]
+  }
+
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
+
+  filter {
+    name   = "root-device-type"
+    values = ["ebs"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
 resource "aws_launch_template" "launch_template" {
   name_prefix   = "launch"
-  image_id      = "ami-0230bd60aa48260c6"
-  instance_type = "t2.micro"
+  image_id      = data.aws_ami.amazon_linux.id
+  instance_type = "t3.micro"
+
   vpc_security_group_ids = [
     var.ec2_security_group_id
   ]
@@ -101,7 +132,8 @@ resource "aws_launch_template" "launch_template" {
     )
   )
 
-  key_name = var.project_name
+  # TODO: Fix SSH key setup.
+  # key_name = var.project_name
 
   iam_instance_profile {
     name = aws_iam_instance_profile.ec2_instance_profile.name
@@ -117,10 +149,10 @@ resource "aws_launch_template" "launch_template" {
 }
 
 resource "aws_autoscaling_group" "asg" {
-  availability_zones = ["us-east-1a"]
   desired_capacity   = 1
   max_size           = 2
   min_size           = 1
+  vpc_zone_identifier = var.private_subnet_ids
 
   name_prefix       = "${var.project_name}-"
   target_group_arns = var.target_group_arns

@@ -25,7 +25,6 @@ module "sg" {
   public_cidr_blocks  = module.vpc.public_subnets_cidr_blocks
   project_name        = var.project_name
   private_cidr_blocks = module.vpc.private_subnets_cidr_blocks
-  target_port         = var.target_port
 }
 
 module "ecr" {
@@ -59,7 +58,6 @@ module "rds" {
   db_sg_ids     = [module.sg.db_sg_id]
   db_subnet_ids = module.vpc.database_subnets
   project_name  = var.project_name
-  vpc_id        = module.vpc.vpc_id
 }
 
 module "loadbalancer" {
@@ -92,6 +90,7 @@ module "ec2" {
   rds_instance_arn      = module.rds.db_instance_arn
   rds_instance_address = module.rds.db_instance_address
   docker_registry_url   = module.ecr.repository_url
+  private_subnet_ids    = module.vpc.private_subnets
 }
 
 # module "cdn" {

@@ -43,3 +43,7 @@ variable "rds_instance_address" {
 variable "docker_registry_url" {
   type = string
 }
+
+variable "private_subnet_ids" {
+  type = list(string)
+}

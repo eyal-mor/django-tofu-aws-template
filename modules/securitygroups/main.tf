@@ -48,7 +48,7 @@ resource "aws_security_group" "allow_ec2" {
 
   ingress {
     from_port = 443
-    to_port   = var.target_port
+    to_port   = 65535
     protocol  = "tcp"
     security_groups = [
       aws_security_group.allow_lb.id
@@ -59,7 +59,9 @@ resource "aws_security_group" "allow_ec2" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = []
+    cidr_blocks = [
+      "0.0.0.0/0"
+    ]
   }
 }
 
