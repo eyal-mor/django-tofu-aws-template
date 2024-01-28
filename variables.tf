@@ -22,10 +22,6 @@ variable "compose_file" {
   type = string
 }
 
-variable "docker_tag" {
-  type = string
-}
-
 variable "target_port" {
   description = "exposed target port of the container within the ec2 instance"
   type        = number

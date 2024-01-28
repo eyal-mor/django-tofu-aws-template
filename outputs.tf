@@ -38,3 +38,8 @@ output "celery_queue_arn" {
   description = "The ARN of the SQS queue"
   value       = aws_sqs_queue.celery_queue.arn
 }
+
+output "docker_repository_url" {
+  description = "The URL of the docker registry"
+  value       = module.ecr.repository_url
+}
