@@ -27,26 +27,39 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+      - uses: opentofu/setup-opentofu@v1
+      # Store tofu in out working dir for next step
+      - run: |
+          cp ${{ env.TOFU_CLI_PATH }}/tofu-bin .
+      - uses: gruntwork-io/terragrunt-action@v2
+        name: Tofu Outputs
+        id: tofu-outputs
+        env:
+          # Use the local copy of tofu to run terragrunt
+          TERRAGRUNT_TFPATH: ${{github.workspace}}/tofu-bin
+        with:
+          tg_version: 0.54.22
+          tf_version: none # Use opentofu ^^^
+          tg_dir: infra/staging
+          tg_command: output -json -lock-timeout=5m
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
           context: .
           file: docker/Dockerfile.base
           push: true
-          tags: XXXX.dkr.ecr.us-east-1.amazonaws.com/XXXX:${{github.sha}}
+          tags: "${{fromJson(steps.tofu-outputs.tg_action_output).ecr_registry}}:${{github.sha}}"
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      - uses: opentofu/setup-opentofu@v1
-      # Store tofu in out working dir for next step
-      - run: |
-          cp ${{ env.TOFU_CLI_PATH }}/tofu-bin .
       - uses: gruntwork-io/terragrunt-action@v2
         name: Deploy
         env:
           # Use the local copy of tofu to run terragrunt
           TERRAGRUNT_TFPATH: ${{github.workspace}}/tofu-bin
+          DOCKER_TAG: ${{github.sha}}
+          DOCKER_REGISTRY_URL: ${{fromJson(steps.tofu-outputs.tg_action_output).ecr_registry}}
         with:
-          tg_version: 0.53.6
+          tg_version: 0.54.22
           tf_version: none # Use opentofu ^^^
-          tg_dir: infra/envs/staging
-          tg_command: apply -var "docker_tag=${{github.sha}}" -lock-timeout=5m
+          tg_dir: infra/staging
+          tg_command: apply -var "compose_file=$(envsubst < ${{github.workspace}}/docker-compose-release.yaml)" -var "docker_tag=${{github.sha}}" -lock-timeout=5m
