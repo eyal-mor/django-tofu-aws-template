@@ -1,3 +1,6 @@
+data "aws_region" "current_region" {}
+data "aws_caller_identity" "current_user" {}
+
 data "aws_iam_policy_document" "assume_policy" {
   statement {
     actions = [
@@ -58,7 +61,7 @@ data "aws_iam_policy_document" "policy" {
     ]
 
     resources = [
-      "${var.rds_instance_arn}",
+      "arn:aws:rds-db:${data.aws_region.current_region.name}:${data.aws_caller_identity.current_user.account_id}:dbuser:${var.rds_resource_id}/${var.db_user_name}"
     ]
   }
 }
@@ -86,8 +89,8 @@ resource "aws_iam_instance_profile" "ec2_instance_profile" {
 }
 
 data "aws_ami" "amazon_linux" {
-  most_recent      = true
-  owners           = ["amazon"]
+  most_recent = true
+  owners      = ["amazon"]
 
   filter {
     name   = "name"
@@ -129,8 +132,8 @@ resource "aws_launch_template" "launch_template" {
         {
           # This file is what causes the changes that create a deployment.
           # Without an update on this file, launch config will not update, which won't cause a rolling upgrade.
-          COMPOSE_FILE = var.compose_file
-          RDS_HOST     = var.rds_instance_address
+          COMPOSE_FILE        = var.compose_file
+          RDS_HOST            = var.rds_instance_address
           DOCKER_REGISTRY_URL = var.docker_registry_url
         }
       )
@@ -154,9 +157,9 @@ resource "aws_launch_template" "launch_template" {
 }
 
 resource "aws_autoscaling_group" "asg" {
-  desired_capacity   = 1
-  max_size           = 2
-  min_size           = 1
+  desired_capacity    = 1
+  max_size            = 2
+  min_size            = 1
   vpc_zone_identifier = var.private_subnet_ids
 
   name_prefix       = "${var.project_name}-"

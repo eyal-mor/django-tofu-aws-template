@@ -32,7 +32,11 @@ variable "celery_queue_arn" {
   type = string
 }
 
-variable "rds_instance_arn" {
+variable "rds_resource_id" {
+  type = string
+}
+
+variable "db_user_name" {
   type = string
 }
 

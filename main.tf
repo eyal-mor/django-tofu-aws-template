@@ -87,8 +87,9 @@ module "ec2" {
   s3_static_bucket_arn  = aws_s3_bucket.static.arn
   s3_uploads_bucket_arn = aws_s3_bucket.uploads.arn
   celery_queue_arn      = aws_sqs_queue.celery_queue.arn
-  rds_instance_arn      = module.rds.db_instance_arn
-  rds_instance_address = module.rds.db_instance_address
+  rds_resource_id       = module.rds.db_instance_resource_id
+  rds_instance_address  = module.rds.db_instance_address
+  db_user_name          = var.db_user_name
   docker_registry_url   = module.ecr.repository_url
   private_subnet_ids    = module.vpc.private_subnets
 }

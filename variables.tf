@@ -46,3 +46,8 @@ variable "public_subnets" {
   description = "Public subnets of the VPC, example: [\"10.0.101.0/24\", \"10.0.102.0/24\", \"10.0.103.0/24\"]"
   type        = list(string)
 }
+
+variable "db_user_name" {
+  description = "Database username"
+  type        = string
+}
