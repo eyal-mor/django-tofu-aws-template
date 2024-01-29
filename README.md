@@ -19,7 +19,7 @@ To use this module, you'll need to have Terraform and Terragrunt installed. You'
 
 ```hcl
 module "django_open_tofu" {
-  source = "github.com/yourorg/django-open-tofu"
+  source = "git::https://github.com/eyal-mor/django-tofu-aws-template"
 
   # ... other variables ...
 }
