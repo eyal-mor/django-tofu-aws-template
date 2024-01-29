@@ -15,7 +15,7 @@ services:
         condition: service_started
       init-web:
         condition: service_completed_successfully
-    command: python3 -m gunicorn Project.asgi:application --bind 0.0.0.0 -k uvicorn.workers.UvicornWorker
+    command: python3 -m gunicorn config.asgi:application --bind 0.0.0.0 -k uvicorn.workers.UvicornWorker
 
   celery:
     restart: always
@@ -31,6 +31,6 @@ services:
     working_dir: /app/Project
     network_mode: host
     image: ${DOCKER_REGISTRY_URL}:${TAG}
-    command: ./manage.py migrate
+    command: bash -c './manage.py collectstatic --noinput; ./manage.py migrate;'
     env_file:
       - .env

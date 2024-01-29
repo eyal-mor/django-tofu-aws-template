@@ -1,4 +1,5 @@
 data "aws_region" "current" {}
+data "aws_caller_identity" "current_user" {}
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
@@ -94,71 +95,159 @@ module "ec2" {
   private_subnet_ids    = module.vpc.private_subnets
 }
 
-# module "cdn" {
-#   source = "terraform-aws-modules/cloudfront/aws"
+data "aws_acm_certificate" "domain_cert" {
+  count = length(var.domain_name) > 0 ? 1 : 0
+  provider = aws.useast1 # Search us-east-1 for the certificate
 
-#   # aliases = ["cdn.example.com"]
+  domain      = var.domain_name
+  statuses    = ["ISSUED"]
+  most_recent = true
+}
 
-#   comment             = "${var.project_name} CDN"
-#   enabled             = true
-#   is_ipv6_enabled     = true
-#   price_class         = "PriceClass_100"
-#   retain_on_delete    = false
-#   wait_for_deployment = false
+data "aws_cloudfront_origin_request_policy" "server" {
+  name = "Managed-AllViewerAndCloudFrontHeaders-2022-06"
+}
 
-#   create_origin_access_identity = true
-#   origin_access_identities = {
-#     s3_bucket_one = "My awesome CloudFront can access"
-#   }
+data "aws_cloudfront_cache_policy" "server" {
+  name = "Managed-CachingDisabled"
+}
 
-#   logging_config = {
-#     bucket = "logs-my-cdn.s3.amazonaws.com"
-#   }
+data "aws_cloudfront_origin_request_policy" "s3" {
+  name = "Managed-CORS-S3Origin"
+}
 
-#   origin = {
-#     something = {
-#       domain_name = "something.example.com"
-#       custom_origin_config = {
-#         http_port              = 80
-#         https_port             = 443
-#         origin_protocol_policy = "match-viewer"
-#         origin_ssl_protocols   = ["TLSv1", "TLSv1.1", "TLSv1.2"]
-#       }
-#     }
+data "aws_cloudfront_cache_policy" "s3" {
+  name = "Managed-CachingOptimized"
+}
 
-#     s3_one = {
-#       domain_name = "my-s3-bycket.s3.amazonaws.com"
-#       s3_origin_config = {
-#         origin_access_identity = "s3_bucket_one"
-#       }
-#     }
-#   }
+module "cdn" {
+  source = "terraform-aws-modules/cloudfront/aws"
+  version = "3.2.1"
 
-#   default_cache_behavior = {
-#     target_origin_id           = "something"
-#     viewer_protocol_policy     = "allow-all"
+  aliases = [var.domain_name]
 
-#     allowed_methods = ["GET", "HEAD", "OPTIONS"]
-#     cached_methods  = ["GET", "HEAD"]
-#     compress        = true
-#     query_string    = true
-#   }
+  comment             = "${var.project_name} CDN"
+  enabled             = true
+  is_ipv6_enabled     = true
+  price_class         = "PriceClass_100"
+  retain_on_delete    = false
+  wait_for_deployment = false
 
-#   ordered_cache_behavior = [
-#     {
-#       path_pattern           = "/static/*"
-#       target_origin_id       = "s3_one"
-#       viewer_protocol_policy = "redirect-to-https"
+  create_origin_access_control = true
+  create_origin_access_identity = false
 
-#       allowed_methods = ["GET", "HEAD", "OPTIONS"]
-#       cached_methods  = ["GET", "HEAD"]
-#       compress        = true
-#       query_string    = true
-#     }
-#   ]
+  origin_access_control = {
+    s3_static = {
+      description = "Access Static Files"
+      origin_type = "s3",
+      signing_behavior: "always",
+      signing_protocol: "sigv4",
+    },
+    s3_upload = {
+      description = "Access Uploaded Files",
+      origin_type = "s3",
+      signing_behavior: "always",
+      signing_protocol: "sigv4",
+    }
+  }
 
-#   viewer_certificate = {
-#     acm_certificate_arn = "arn:aws:acm:us-east-1:135367859851:certificate/1032b155-22da-4ae0-9f69-e206f825458b"
-#     ssl_support_method  = "sni-only"
-#   }
-# }
+  origin = {
+    server = {
+      domain_name = module.loadbalancer.url
+      custom_origin_config = {
+        http_port              = 80
+        https_port             = 443
+        origin_protocol_policy = "match-viewer"
+        origin_ssl_protocols   = ["TLSv1.2"]
+      }
+    }
+
+    s3_static = {
+      domain_name = aws_s3_bucket.static.bucket_regional_domain_name
+      origin_access_control = "s3_static"
+    }
+
+    s3_upload = {
+      domain_name = aws_s3_bucket.uploads.bucket_regional_domain_name
+      origin_access_control = "s3_upload"
+    }
+  }
+
+  default_cache_behavior = {
+    target_origin_id           = "server"
+    viewer_protocol_policy     = "redirect-to-https"
+
+    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.server.id
+    cache_policy_id = data.aws_cloudfront_cache_policy.server.id
+  }
+
+  ordered_cache_behavior = [
+    {
+      path_pattern           = "/static/*"
+      target_origin_id       = "s3_static"
+      viewer_protocol_policy = "redirect-to-https"
+
+      origin_request_policy_id = data.aws_cloudfront_origin_request_policy.s3.id
+      cache_policy_id = data.aws_cloudfront_cache_policy.s3.id
+    },
+    {
+      path_pattern           = "/uploads/*"
+      target_origin_id       = "s3_upload"
+      viewer_protocol_policy = "redirect-to-https"
+
+      origin_request_policy_id = data.aws_cloudfront_origin_request_policy.s3.id
+      cache_policy_id = data.aws_cloudfront_cache_policy.s3.id
+    },
+  ]
+
+  viewer_certificate = {
+    acm_certificate_arn = data.aws_acm_certificate.domain_cert[0].arn
+    ssl_support_method  = "sni-only"
+  }
+}
+
+resource "aws_s3_bucket_policy" "oac_uploads" {
+  bucket = aws_s3_bucket.uploads.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect    = "Allow",
+        Principal = {
+          Service = "cloudfront.amazonaws.com"
+        },
+        Action    = "s3:GetObject",
+        Resource  = "${aws_s3_bucket.uploads.arn}/*",
+        Condition = {
+          StringEquals = {
+            "aws:SourceArn" = "arn:aws:cloudfront::${data.aws_caller_identity.current_user.account_id}:distribution/${module.cdn.cloudfront_distribution_id}"
+          }
+        }
+      },
+    ],
+  })
+}
+
+resource "aws_s3_bucket_policy" "oac_static" {
+  bucket = aws_s3_bucket.static.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect    = "Allow",
+        Principal = {
+          Service = "cloudfront.amazonaws.com"
+        },
+        Action    = "s3:GetObject",
+        Resource  = "${aws_s3_bucket.static.arn}/*",
+        Condition = {
+          StringEquals = {
+            "aws:SourceArn" = "arn:aws:cloudfront::${data.aws_caller_identity.current_user.account_id}:distribution/${module.cdn.cloudfront_distribution_id}"
+          }
+        }
+      },
+    ],
+  })
+}

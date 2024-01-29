@@ -126,17 +126,15 @@ resource "aws_launch_template" "launch_template" {
 
   user_data = base64encode(
     templatefile(
-      "${path.module}/bin/user-data.tpl",
-      merge(
-        var.django_env,
-        {
-          # This file is what causes the changes that create a deployment.
-          # Without an update on this file, launch config will not update, which won't cause a rolling upgrade.
-          COMPOSE_FILE        = var.compose_file
-          RDS_HOST            = var.rds_instance_address
-          DOCKER_REGISTRY_URL = var.docker_registry_url
-        }
-      )
+      "${path.module}/bin/user-data.tftpl",
+      {
+        env_vars = var.django_env
+        # This file is what causes the changes that create a deployment.
+        # Without an update on this file, launch config will not update, which won't cause a rolling upgrade.
+        COMPOSE_FILE        = var.compose_file
+        RDS_HOST            = var.rds_instance_address
+        DOCKER_REGISTRY_URL = var.docker_registry_url
+      }
     )
   )
 

@@ -43,3 +43,8 @@ output "docker_repository_url" {
   description = "The URL of the docker registry"
   value       = module.ecr.repository_url
 }
+
+output "cloudfront_domain_name" {
+  description = "The domain name of the cloudfront distribution"
+  value       = module.cdn.cloudfront_distribution_domain_name
+}

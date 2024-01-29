@@ -21,8 +21,9 @@ EOL
 aws ecr get-login-password | docker login --username AWS --password-stdin ${DOCKER_REGISTRY_URL}
 
 cat > /home/ec2-user/.env << EOL
-DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE}"
-DJANGO_ENV="${DJANGO_ENV}"
+%{ for env_key, env_val in env_vars }
+${env_key}=${env_val}
+%{ endfor ~}
 EOL
 
 cat >/home/ec2-user/docker-compose.yaml <<EOL
