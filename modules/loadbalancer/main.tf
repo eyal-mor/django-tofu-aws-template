@@ -1,7 +1,7 @@
 data "aws_acm_certificate" "domain_cert" {
   count = length(var.domain_name) > 0 ? 1 : 0
 
-  domain      = var.domain_name
+  domain      = "${var.domain_name}"
   statuses    = ["ISSUED"]
   most_recent = true
 }
@@ -49,7 +49,6 @@ resource "aws_lb_listener" "forward_tls" {
     type             = "forward"
     target_group_arn = aws_lb_target_group.tg.arn
   }
-
 }
 
 resource "aws_lb_listener" "forward_redirect" {

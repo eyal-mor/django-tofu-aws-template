@@ -23,7 +23,6 @@ module "sg" {
   source = "./modules/securitygroups"
 
   vpc_id              = module.vpc.vpc_id
-  public_cidr_blocks  = module.vpc.public_subnets_cidr_blocks
   project_name        = var.project_name
   private_cidr_blocks = module.vpc.private_subnets_cidr_blocks
 }
@@ -120,6 +119,10 @@ data "aws_cloudfront_cache_policy" "s3" {
   name = "Managed-CachingOptimized"
 }
 
+data "aws_cloudfront_response_headers_policy" "security" {
+  name = "Managed-SecurityHeadersPolicy"
+}
+
 module "cdn" {
   source = "terraform-aws-modules/cloudfront/aws"
   version = "3.2.1"
@@ -176,9 +179,12 @@ module "cdn" {
   default_cache_behavior = {
     target_origin_id           = "server"
     viewer_protocol_policy     = "redirect-to-https"
+    allowed_methods   = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
 
     origin_request_policy_id = data.aws_cloudfront_origin_request_policy.server.id
     cache_policy_id = data.aws_cloudfront_cache_policy.server.id
+    response_headers_policy_id = data.aws_cloudfront_response_headers_policy.security.id
+    use_forwarded_values = false
   }
 
   ordered_cache_behavior = [
@@ -189,6 +195,8 @@ module "cdn" {
 
       origin_request_policy_id = data.aws_cloudfront_origin_request_policy.s3.id
       cache_policy_id = data.aws_cloudfront_cache_policy.s3.id
+      response_headers_policy_id = data.aws_cloudfront_response_headers_policy.security.id
+      use_forwarded_values = false
     },
     {
       path_pattern           = "/uploads/*"
@@ -197,6 +205,8 @@ module "cdn" {
 
       origin_request_policy_id = data.aws_cloudfront_origin_request_policy.s3.id
       cache_policy_id = data.aws_cloudfront_cache_policy.s3.id
+      response_headers_policy_id = data.aws_cloudfront_response_headers_policy.security.id
+      use_forwarded_values = false
     },
   ]
 

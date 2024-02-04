@@ -8,11 +8,6 @@ variable "vpc_id" {
   type        = string
 }
 
-variable "public_cidr_blocks" {
-  description = "value of the private network cidrs"
-  type        = list(string)
-}
-
 variable "private_cidr_blocks" {
   description = "value of the private network cidrs"
   type        = list(string)
