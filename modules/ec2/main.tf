@@ -128,14 +128,12 @@ resource "aws_launch_template" "launch_template" {
     templatefile(
       "${path.module}/bin/user-data.tftpl",
       {
-        env_vars = var.django_env
+        env_vars = merge(var.django_env, {AWS_S3_BUCKET_STATIC_NAME = var.s3_static_bucket_name, AWS_S3_BUCKET_UPLOADS_NAME = var.s3_uploads_bucket_name})
         # This file is what causes the changes that create a deployment.
         # Without an update on this file, launch config will not update, which won't cause a rolling upgrade.
         COMPOSE_FILE        = var.compose_file
         RDS_HOST            = var.rds_instance_address
         DOCKER_REGISTRY_URL = var.docker_registry_url
-        AWS_S3_BUCKET_STATIC_NAME = var.s3_static_bucket_name
-        AWS_S3_BUCKET_UPLOADS_NAME = var.s3_uploads_bucket_name
       }
     )
   )
