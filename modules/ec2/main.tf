@@ -1,5 +1,8 @@
 data "aws_region" "current_region" {}
 data "aws_caller_identity" "current_user" {}
+data "aws_secretsmanager_secret" "project_secrets" {
+  name = var.secrets_name
+}
 
 data "aws_iam_policy_document" "assume_policy" {
   statement {
@@ -62,6 +65,16 @@ data "aws_iam_policy_document" "policy" {
 
     resources = [
       "arn:aws:rds-db:${data.aws_region.current_region.name}:${data.aws_caller_identity.current_user.account_id}:dbuser:${var.rds_resource_id}/${var.db_user_name}"
+    ]
+  }
+
+  statement {
+    actions = [
+      "secretsmanager:GetSecretValue"
+    ]
+
+    resources = [
+      data.aws_secretsmanager_secret.project_secrets.arn
     ]
   }
 }
@@ -128,7 +141,15 @@ resource "aws_launch_template" "launch_template" {
     templatefile(
       "${path.module}/bin/user-data.tftpl",
       {
-        env_vars = merge(var.django_env, {AWS_S3_BUCKET_STATIC_NAME = var.s3_static_bucket_name, AWS_S3_BUCKET_UPLOADS_NAME = var.s3_uploads_bucket_name})
+        env_vars = merge(
+          var.django_env,
+          {
+            AWS_S3_BUCKET_STATIC_NAME = var.s3_static_bucket_name,
+            AWS_S3_BUCKET_UPLOADS_NAME = var.s3_uploads_bucket_name,
+            AWS_REGION = data.aws_region.current_region.name,
+            AWS_DEFAULT_REGION = data.aws_region.current_region.name,
+          }
+        )
         # This file is what causes the changes that create a deployment.
         # Without an update on this file, launch config will not update, which won't cause a rolling upgrade.
         COMPOSE_FILE        = var.compose_file

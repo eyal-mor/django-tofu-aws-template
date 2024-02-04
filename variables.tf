@@ -51,3 +51,8 @@ variable "db_user_name" {
   description = "Database username"
   type        = string
 }
+
+variable "secrets_name" {
+  type = string
+  description = "Name of the secret in AWS secrets manager"
+}
