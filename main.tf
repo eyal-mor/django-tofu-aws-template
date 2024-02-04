@@ -86,6 +86,8 @@ module "ec2" {
   ec2_security_group_id = module.sg.ec2_sg_id
   s3_static_bucket_arn  = aws_s3_bucket.static.arn
   s3_uploads_bucket_arn = aws_s3_bucket.uploads.arn
+  s3_static_bucket_name = aws_s3_bucket.static.bucket
+  s3_uploads_bucket_name = aws_s3_bucket.uploads.bucket
   celery_queue_arn      = aws_sqs_queue.celery_queue.arn
   rds_resource_id       = module.rds.db_instance_resource_id
   rds_instance_address  = module.rds.db_instance_address
