@@ -148,6 +148,7 @@ resource "aws_launch_template" "launch_template" {
             AWS_S3_BUCKET_UPLOADS_NAME = var.s3_uploads_bucket_name,
             AWS_REGION = data.aws_region.current_region.name,
             AWS_DEFAULT_REGION = data.aws_region.current_region.name,
+            SECRETS_MANAGER_NAME = var.secrets_name,
           }
         )
         # This file is what causes the changes that create a deployment.
