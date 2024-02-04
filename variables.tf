@@ -53,6 +53,6 @@ variable "db_user_name" {
 }
 
 variable "secrets_name" {
-  type = string
+  type        = string
   description = "Name of the secret in AWS secrets manager"
 }

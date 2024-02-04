@@ -79,25 +79,26 @@ resource "aws_secretsmanager_secret" "project_secrets" {
 module "ec2" {
   source = "./modules/ec2"
 
-  django_env            = var.django_env
-  compose_file          = var.compose_file
-  target_group_arns     = module.loadbalancer.target_group_arns
-  project_name          = var.project_name
-  ec2_security_group_id = module.sg.ec2_sg_id
-  s3_static_bucket_arn  = aws_s3_bucket.static.arn
-  s3_uploads_bucket_arn = aws_s3_bucket.uploads.arn
-  s3_static_bucket_name = aws_s3_bucket.static.bucket
+  django_env             = var.django_env
+  compose_file           = var.compose_file
+  target_group_arns      = module.loadbalancer.target_group_arns
+  project_name           = var.project_name
+  ec2_security_group_id  = module.sg.ec2_sg_id
+  s3_static_bucket_arn   = aws_s3_bucket.static.arn
+  s3_uploads_bucket_arn  = aws_s3_bucket.uploads.arn
+  s3_static_bucket_name  = aws_s3_bucket.static.bucket
   s3_uploads_bucket_name = aws_s3_bucket.uploads.bucket
-  celery_queue_arn      = aws_sqs_queue.celery_queue.arn
-  rds_resource_id       = module.rds.db_instance_resource_id
-  rds_instance_address  = module.rds.db_instance_address
-  db_user_name          = var.db_user_name
-  docker_registry_url   = module.ecr.repository_url
-  private_subnet_ids    = module.vpc.private_subnets
+  celery_queue_arn       = aws_sqs_queue.celery_queue.arn
+  rds_resource_id        = module.rds.db_instance_resource_id
+  rds_instance_address   = module.rds.db_instance_address
+  db_user_name           = var.db_user_name
+  docker_registry_url    = module.ecr.repository_url
+  private_subnet_ids     = module.vpc.private_subnets
+  secrets_name           = var.secrets_name
 }
 
 data "aws_acm_certificate" "domain_cert" {
-  count = length(var.domain_name) > 0 ? 1 : 0
+  count    = length(var.domain_name) > 0 ? 1 : 0
   provider = aws.useast1 # Search us-east-1 for the certificate
 
   domain      = var.domain_name
@@ -126,7 +127,7 @@ data "aws_cloudfront_response_headers_policy" "security" {
 }
 
 module "cdn" {
-  source = "terraform-aws-modules/cloudfront/aws"
+  source  = "terraform-aws-modules/cloudfront/aws"
   version = "3.2.1"
 
   aliases = [var.domain_name]
@@ -138,21 +139,21 @@ module "cdn" {
   retain_on_delete    = false
   wait_for_deployment = false
 
-  create_origin_access_control = true
+  create_origin_access_control  = true
   create_origin_access_identity = false
 
   origin_access_control = {
     s3_static = {
       description = "Access Static Files"
       origin_type = "s3",
-      signing_behavior: "always",
-      signing_protocol: "sigv4",
+      signing_behavior : "always",
+      signing_protocol : "sigv4",
     },
     s3_upload = {
       description = "Access Uploaded Files",
       origin_type = "s3",
-      signing_behavior: "always",
-      signing_protocol: "sigv4",
+      signing_behavior : "always",
+      signing_protocol : "sigv4",
     }
   }
 
@@ -168,25 +169,25 @@ module "cdn" {
     }
 
     s3_static = {
-      domain_name = aws_s3_bucket.static.bucket_regional_domain_name
+      domain_name           = aws_s3_bucket.static.bucket_regional_domain_name
       origin_access_control = "s3_static"
     }
 
     s3_upload = {
-      domain_name = aws_s3_bucket.uploads.bucket_regional_domain_name
+      domain_name           = aws_s3_bucket.uploads.bucket_regional_domain_name
       origin_access_control = "s3_upload"
     }
   }
 
   default_cache_behavior = {
-    target_origin_id           = "server"
-    viewer_protocol_policy     = "redirect-to-https"
-    allowed_methods   = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
+    target_origin_id       = "server"
+    viewer_protocol_policy = "redirect-to-https"
+    allowed_methods        = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
 
-    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.server.id
-    cache_policy_id = data.aws_cloudfront_cache_policy.server.id
+    origin_request_policy_id   = data.aws_cloudfront_origin_request_policy.server.id
+    cache_policy_id            = data.aws_cloudfront_cache_policy.server.id
     response_headers_policy_id = data.aws_cloudfront_response_headers_policy.security.id
-    use_forwarded_values = false
+    use_forwarded_values       = false
   }
 
   ordered_cache_behavior = [
@@ -195,20 +196,20 @@ module "cdn" {
       target_origin_id       = "s3_static"
       viewer_protocol_policy = "redirect-to-https"
 
-      origin_request_policy_id = data.aws_cloudfront_origin_request_policy.s3.id
-      cache_policy_id = data.aws_cloudfront_cache_policy.s3.id
+      origin_request_policy_id   = data.aws_cloudfront_origin_request_policy.s3.id
+      cache_policy_id            = data.aws_cloudfront_cache_policy.s3.id
       response_headers_policy_id = data.aws_cloudfront_response_headers_policy.security.id
-      use_forwarded_values = false
+      use_forwarded_values       = false
     },
     {
       path_pattern           = "/uploads/*"
       target_origin_id       = "s3_upload"
       viewer_protocol_policy = "redirect-to-https"
 
-      origin_request_policy_id = data.aws_cloudfront_origin_request_policy.s3.id
-      cache_policy_id = data.aws_cloudfront_cache_policy.s3.id
+      origin_request_policy_id   = data.aws_cloudfront_origin_request_policy.s3.id
+      cache_policy_id            = data.aws_cloudfront_cache_policy.s3.id
       response_headers_policy_id = data.aws_cloudfront_response_headers_policy.security.id
-      use_forwarded_values = false
+      use_forwarded_values       = false
     },
   ]
 
@@ -225,12 +226,12 @@ resource "aws_s3_bucket_policy" "oac_uploads" {
     Version = "2012-10-17",
     Statement = [
       {
-        Effect    = "Allow",
+        Effect = "Allow",
         Principal = {
           Service = "cloudfront.amazonaws.com"
         },
-        Action    = "s3:GetObject",
-        Resource  = "${aws_s3_bucket.uploads.arn}/*",
+        Action   = "s3:GetObject",
+        Resource = "${aws_s3_bucket.uploads.arn}/*",
         Condition = {
           StringEquals = {
             "aws:SourceArn" = "arn:aws:cloudfront::${data.aws_caller_identity.current_user.account_id}:distribution/${module.cdn.cloudfront_distribution_id}"
@@ -248,12 +249,12 @@ resource "aws_s3_bucket_policy" "oac_static" {
     Version = "2012-10-17",
     Statement = [
       {
-        Effect    = "Allow",
+        Effect = "Allow",
         Principal = {
           Service = "cloudfront.amazonaws.com"
         },
-        Action    = "s3:GetObject",
-        Resource  = "${aws_s3_bucket.static.arn}/*",
+        Action   = "s3:GetObject",
+        Resource = "${aws_s3_bucket.static.arn}/*",
         Condition = {
           StringEquals = {
             "aws:SourceArn" = "arn:aws:cloudfront::${data.aws_caller_identity.current_user.account_id}:distribution/${module.cdn.cloudfront_distribution_id}"

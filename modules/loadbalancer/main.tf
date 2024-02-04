@@ -1,7 +1,7 @@
 data "aws_acm_certificate" "domain_cert" {
   count = length(var.domain_name) > 0 ? 1 : 0
 
-  domain      = "${var.domain_name}"
+  domain      = var.domain_name
   statuses    = ["ISSUED"]
   most_recent = true
 }

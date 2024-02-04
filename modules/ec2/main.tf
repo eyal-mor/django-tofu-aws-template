@@ -144,11 +144,11 @@ resource "aws_launch_template" "launch_template" {
         env_vars = merge(
           var.django_env,
           {
-            AWS_S3_BUCKET_STATIC_NAME = var.s3_static_bucket_name,
+            AWS_S3_BUCKET_STATIC_NAME  = var.s3_static_bucket_name,
             AWS_S3_BUCKET_UPLOADS_NAME = var.s3_uploads_bucket_name,
-            AWS_REGION = data.aws_region.current_region.name,
-            AWS_DEFAULT_REGION = data.aws_region.current_region.name,
-            SECRETS_MANAGER_NAME = var.secrets_name,
+            AWS_REGION                 = data.aws_region.current_region.name,
+            AWS_DEFAULT_REGION         = data.aws_region.current_region.name,
+            SECRETS_MANAGER_NAME       = var.secrets_name,
           }
         )
         # This file is what causes the changes that create a deployment.
