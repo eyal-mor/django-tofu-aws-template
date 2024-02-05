@@ -216,6 +216,7 @@ module "cdn" {
   viewer_certificate = {
     acm_certificate_arn = data.aws_acm_certificate.domain_cert[0].arn
     ssl_support_method  = "sni-only"
+    minimum_protocol_version = "TLSv1.2_2021"
   }
 }
 
