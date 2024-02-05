@@ -183,6 +183,7 @@ module "cdn" {
     target_origin_id       = "server"
     viewer_protocol_policy = "redirect-to-https"
     allowed_methods        = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
+    compress = true
 
     origin_request_policy_id   = data.aws_cloudfront_origin_request_policy.server.id
     cache_policy_id            = data.aws_cloudfront_cache_policy.server.id
@@ -195,6 +196,7 @@ module "cdn" {
       path_pattern           = "/static/*"
       target_origin_id       = "s3_static"
       viewer_protocol_policy = "redirect-to-https"
+      compress = true
 
       origin_request_policy_id   = data.aws_cloudfront_origin_request_policy.s3.id
       cache_policy_id            = data.aws_cloudfront_cache_policy.s3.id
@@ -205,6 +207,7 @@ module "cdn" {
       path_pattern           = "/uploads/*"
       target_origin_id       = "s3_upload"
       viewer_protocol_policy = "redirect-to-https"
+      compress = true
 
       origin_request_policy_id   = data.aws_cloudfront_origin_request_policy.s3.id
       cache_policy_id            = data.aws_cloudfront_cache_policy.s3.id
