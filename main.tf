@@ -13,10 +13,19 @@ module "vpc" {
   database_subnets = var.database_subnets
   public_subnets   = var.public_subnets
 
-  enable_nat_gateway     = true
-  single_nat_gateway     = true
-  one_nat_gateway_per_az = false
-  enable_vpn_gateway     = false
+  enable_nat_gateway     = false # Use fck-nat module for NAT
+  single_nat_gateway     = false # Use fck-nat module for NAT
+  one_nat_gateway_per_az = false # Use fck-nat module for NAT
+  enable_vpn_gateway     = false # VPN is overpriced.
+}
+
+module "nat" {
+  source = "./modules/nat"
+
+  private_route_table_ids = module.vpc.private_route_table_ids
+  vpc_id                  = module.vpc.vpc_id
+  project_name            = var.project_name
+  public_subnet_id        = module.vpc.public_subnets[0]
 }
 
 module "sg" {
@@ -183,7 +192,7 @@ module "cdn" {
     target_origin_id       = "server"
     viewer_protocol_policy = "redirect-to-https"
     allowed_methods        = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
-    compress = true
+    compress               = true
 
     origin_request_policy_id   = data.aws_cloudfront_origin_request_policy.server.id
     cache_policy_id            = data.aws_cloudfront_cache_policy.server.id
@@ -196,7 +205,7 @@ module "cdn" {
       path_pattern           = "/static/*"
       target_origin_id       = "s3_static"
       viewer_protocol_policy = "redirect-to-https"
-      compress = true
+      compress               = true
 
       origin_request_policy_id   = data.aws_cloudfront_origin_request_policy.s3.id
       cache_policy_id            = data.aws_cloudfront_cache_policy.s3.id
@@ -207,7 +216,7 @@ module "cdn" {
       path_pattern           = "/uploads/*"
       target_origin_id       = "s3_upload"
       viewer_protocol_policy = "redirect-to-https"
-      compress = true
+      compress               = true
 
       origin_request_policy_id   = data.aws_cloudfront_origin_request_policy.s3.id
       cache_policy_id            = data.aws_cloudfront_cache_policy.s3.id
@@ -217,8 +226,8 @@ module "cdn" {
   ]
 
   viewer_certificate = {
-    acm_certificate_arn = data.aws_acm_certificate.domain_cert[0].arn
-    ssl_support_method  = "sni-only"
+    acm_certificate_arn      = data.aws_acm_certificate.domain_cert[0].arn
+    ssl_support_method       = "sni-only"
     minimum_protocol_version = "TLSv1.2_2021"
   }
 }
