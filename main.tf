@@ -155,14 +155,14 @@ module "cdn" {
     s3_static = {
       description = "Access Static Files"
       origin_type = "s3",
-      signing_behavior : "always",
-      signing_protocol : "sigv4",
+      signing_behavior = "always",
+      signing_protocol = "sigv4",
     },
     s3_upload = {
       description = "Access Uploaded Files",
       origin_type = "s3",
-      signing_behavior : "always",
-      signing_protocol : "sigv4",
+      signing_behavior = "always",
+      signing_protocol = "sigv4",
     }
   }
 
