@@ -77,6 +77,14 @@ data "aws_iam_policy_document" "policy" {
       data.aws_secretsmanager_secret.project_secrets.arn
     ]
   }
+
+  statement {
+    actions = [
+      "sts:GetCallerIdentity",
+    ]
+
+    resources = ["*"]
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "ssm_managed" {
