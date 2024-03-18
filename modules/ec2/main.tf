@@ -149,12 +149,12 @@ resource "aws_launch_template" "launch_template" {
             AWS_REGION                 = data.aws_region.current_region.name,
             AWS_DEFAULT_REGION         = data.aws_region.current_region.name,
             SECRETS_MANAGER_NAME       = var.secrets_name,
+            RDS_HOST                   = var.rds_instance_address,
           }
         )
         # This file is what causes the changes that create a deployment.
         # Without an update on this file, launch config will not update, which won't cause a rolling upgrade.
         COMPOSE_FILE        = var.compose_file
-        RDS_HOST            = var.rds_instance_address
         DOCKER_REGISTRY_URL = var.docker_registry_url
       }
     )
