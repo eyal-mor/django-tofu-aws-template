@@ -48,3 +48,8 @@ output "cloudfront_domain_name" {
   description = "The domain name of the cloudfront distribution"
   value       = module.cdn.cloudfront_distribution_domain_name
 }
+
+output "cloudfront_id" {
+  description = "The domain name of the cloudfront distribution"
+  value       = module.cdn.cloudfront_distribution_id
+}
