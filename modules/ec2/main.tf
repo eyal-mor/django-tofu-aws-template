@@ -137,7 +137,7 @@ data "aws_ami" "amazon_linux" {
 resource "aws_launch_template" "launch_template" {
   name_prefix   = "launch"
   image_id      = data.aws_ami.amazon_linux.id
-  instance_type = "t3.micro"
+  instance_type = var.instance_type
 
   vpc_security_group_ids = [
     var.ec2_security_group_id

@@ -63,3 +63,8 @@ variable "private_subnet_ids" {
 variable "secrets_name" {
   type = string
 }
+
+variable "instance_type" {
+  description = "Type of the EC2 instance"
+  type        = string
+}

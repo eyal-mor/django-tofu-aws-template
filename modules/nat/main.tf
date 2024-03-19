@@ -39,7 +39,7 @@ module "fck-nat" {
 
   update_route_table = true
   route_tables_ids = {
-    for idx, val in var.private_route_table_ids: "${idx}" => val
+    for idx, val in var.private_route_table_ids : "${idx}" => val
   }
 }
 

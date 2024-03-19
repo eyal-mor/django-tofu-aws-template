@@ -104,6 +104,7 @@ module "ec2" {
   docker_registry_url    = module.ecr.repository_url
   private_subnet_ids     = module.vpc.private_subnets
   secrets_name           = var.secrets_name
+  instance_type          = var.instance_type
 }
 
 data "aws_acm_certificate" "domain_cert" {
@@ -153,14 +154,14 @@ module "cdn" {
 
   origin_access_control = {
     s3_static = {
-      description = "Access Static Files"
-      origin_type = "s3",
+      description      = "Access Static Files"
+      origin_type      = "s3",
       signing_behavior = "always",
       signing_protocol = "sigv4",
     },
     s3_upload = {
-      description = "Access Uploaded Files",
-      origin_type = "s3",
+      description      = "Access Uploaded Files",
+      origin_type      = "s3",
       signing_behavior = "always",
       signing_protocol = "sigv4",
     }
