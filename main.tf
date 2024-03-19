@@ -139,9 +139,9 @@ data "aws_cloudfront_cache_policy" "s3" {
   name = "Managed-CachingOptimized"
 }
 
-data "aws_cloudfront_response_headers_policy" "cors_security" {
-  name = "Managed-CORS-with-preflight-and-SecurityHeadersPolicy"
-}
+# data "aws_cloudfront_response_headers_policy" "cors_security" {
+#   name = "Managed-CORS-with-preflight-and-SecurityHeadersPolicy"
+# }
 
 data "aws_cloudfront_response_headers_policy" "security" {
   name = "Managed-SecurityHeadersPolicy"
@@ -208,7 +208,7 @@ module "cdn" {
 
     origin_request_policy_id   = data.aws_cloudfront_origin_request_policy.server.id
     cache_policy_id            = data.aws_cloudfront_cache_policy.server.id
-    response_headers_policy_id = data.aws_cloudfront_response_headers_policy.cors_security.id
+    response_headers_policy_id = data.aws_cloudfront_response_headers_policy.security.id
     use_forwarded_values       = false
   }
 
