@@ -28,14 +28,6 @@ variable "s3_static_bucket_arn" {
   type = string
 }
 
-variable "s3_uploads_bucket_name" {
-  type = string
-}
-
-variable "s3_static_bucket_name" {
-  type = string
-}
-
 variable "celery_queue_arn" {
   type = string
 }
@@ -45,10 +37,6 @@ variable "rds_resource_id" {
 }
 
 variable "db_user_name" {
-  type = string
-}
-
-variable "rds_instance_address" {
   type = string
 }
 

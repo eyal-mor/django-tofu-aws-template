@@ -109,6 +109,10 @@ resource "aws_iam_instance_profile" "ec2_instance_profile" {
   role = aws_iam_role.ec2_instance_role.name
 }
 
+locals {
+  is_arm = can(regex("[a-zA-Z]+\\d+g[a-z]*\\..+", var.instance_type))
+}
+
 data "aws_ami" "amazon_linux" {
   most_recent = true
   owners      = ["amazon"]
@@ -120,7 +124,7 @@ data "aws_ami" "amazon_linux" {
 
   filter {
     name   = "architecture"
-    values = ["x86_64"]
+    values = [local.is_arm ? "arm64" : "x86_64"]
   }
 
   filter {
@@ -149,17 +153,7 @@ resource "aws_launch_template" "launch_template" {
     templatefile(
       "${path.module}/bin/user-data.tftpl",
       {
-        env_vars = merge(
-          var.django_env,
-          {
-            AWS_S3_BUCKET_STATIC_NAME  = var.s3_static_bucket_name,
-            AWS_S3_BUCKET_UPLOADS_NAME = var.s3_uploads_bucket_name,
-            AWS_REGION                 = data.aws_region.current_region.name,
-            AWS_DEFAULT_REGION         = data.aws_region.current_region.name,
-            SECRETS_MANAGER_NAME       = var.secrets_name,
-            RDS_HOST                   = var.rds_instance_address,
-          }
-        )
+        env_vars = var.django_env
         # This file is what causes the changes that create a deployment.
         # Without an update on this file, launch config will not update, which won't cause a rolling upgrade.
         COMPOSE_FILE        = var.compose_file
