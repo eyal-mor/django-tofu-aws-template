@@ -34,6 +34,9 @@ resource "aws_lb_target_group" "tg" {
     unhealthy_threshold = 10
   }
 
+  # Wait 5 minutes before deregistering the target
+  deregistration_delay = 300
+
   lifecycle {
     create_before_destroy = true
   }
