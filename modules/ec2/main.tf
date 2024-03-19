@@ -179,6 +179,14 @@ resource "aws_launch_template" "launch_template" {
     http_put_response_hop_limit = 2
   }
 
+  dynamic "instance_market_options" {
+    for_each = var.use_spot_instances ? ["x"] : []
+
+    content {
+      market_type = "spot"
+    }
+  }
+
   tag_specifications {
     resource_type = "instance"
 

@@ -62,3 +62,9 @@ variable "instance_type" {
   type        = string
   default     = "t3.micro"
 }
+
+variable "use_spot_instances" {
+  description = "Use spot instances"
+  type        = bool
+  default     = false
+}

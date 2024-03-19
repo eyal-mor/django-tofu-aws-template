@@ -105,6 +105,7 @@ module "ec2" {
   private_subnet_ids     = module.vpc.private_subnets
   secrets_name           = var.secrets_name
   instance_type          = var.instance_type
+  use_spot_instances     = var.use_spot_instances
 }
 
 data "aws_acm_certificate" "domain_cert" {
