@@ -33,6 +33,10 @@ resource "aws_lb_target_group" "tg" {
     healthy_threshold   = 3
     unhealthy_threshold = 10
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 
