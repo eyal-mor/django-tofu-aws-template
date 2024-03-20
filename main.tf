@@ -144,7 +144,7 @@ data "aws_cloudfront_cache_policy" "s3" {
 # }
 
 data "aws_cloudfront_response_headers_policy" "security" {
-  name = "Managed-SecurityHeadersPolicy"
+  name = "Managed-CORS-with-preflight-and-SecurityHeadersPolicy"
 }
 
 module "cdn" {
