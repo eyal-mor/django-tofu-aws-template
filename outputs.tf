@@ -53,3 +53,38 @@ output "cloudfront_id" {
   description = "The domain name of the cloudfront distribution"
   value       = module.cdn.cloudfront_distribution_id
 }
+
+
+output "private_route_table_ids" {
+  value = module.vpc.private_route_table_ids
+}
+output "private_subnets_cidr_blocks" {
+  value = module.vpc.private_subnets_cidr_blocks
+}
+output "private_subnets" {
+  value = module.vpc.private_subnets
+}
+output "db_sg_id" {
+  value = module.sg.db_sg_id
+}
+output "database_subnets" {
+  value = module.vpc.database_subnets
+}
+output "ld_sg_id" {
+  value = module.sg.ld_sg_id
+}
+output "public_subnets" {
+  value = module.vpc.public_subnets
+}
+output "target_group_arns" {
+  value = module.loadbalancer.target_group_arns
+}
+output "ec2_sg_id" {
+  value = module.sg.ec2_sg_id
+}
+output "db_instance_resource_id" {
+  value = module.rds.db_instance_resource_id
+}
+output "url" {
+  value = module.loadbalancer.url
+}
