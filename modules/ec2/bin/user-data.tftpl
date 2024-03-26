@@ -2,7 +2,7 @@
 
 
 sudo dnf update -y
-sudo dnf install -y docker jq amazon-ecr-credential-helper
+sudo dnf install -y docker jq amazon-ecr-credential-helper amazon-cloudwatch-agent
 sudo systemctl start docker
 sudo systemctl enable docker
 sudo usermod -aG docker ec2-user
@@ -20,6 +20,12 @@ EOL
 
 aws ecr get-login-password | docker login --username AWS --password-stdin ${DOCKER_REGISTRY_URL}
 
+cat > /home/ec2-user/amazon-cloudwatch-agent.json << EOL
+${jsonencode(LOG_CONFIG)}
+EOL
+
+sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:/home/ec2-user/amazon-cloudwatch-agent.json
+
 cat > /home/ec2-user/.env << EOL
 %{ for env_key, env_val in env_vars }
 ${env_key}=${env_val}
@@ -32,3 +38,4 @@ EOL
 
 cd /home/ec2-user/
 docker-compose up -d
+

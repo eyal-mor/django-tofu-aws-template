@@ -88,30 +88,31 @@ resource "aws_secretsmanager_secret" "project_secrets" {
 module "ec2" {
   source = "./modules/ec2"
 
-  compose_file           = var.compose_file
-  target_group_arns      = module.loadbalancer.target_group_arns
-  project_name           = var.project_name
-  ec2_security_group_id  = module.sg.ec2_sg_id
-  s3_static_bucket_arn   = aws_s3_bucket.static.arn
-  s3_uploads_bucket_arn  = aws_s3_bucket.uploads.arn
-  celery_queue_arn       = aws_sqs_queue.celery_queue.arn
-  rds_resource_id        = module.rds.db_instance_resource_id
-  db_user_name           = var.db_user_name
-  docker_registry_url    = module.ecr.repository_url
-  private_subnet_ids     = module.vpc.private_subnets
-  secrets_name           = var.secrets_name
-  instance_type          = var.instance_type
-  use_spot_instances     = var.use_spot_instances
+  compose_file          = var.compose_file
+  target_group_arns     = module.loadbalancer.target_group_arns
+  project_name          = var.project_name
+  ec2_security_group_id = module.sg.ec2_sg_id
+  s3_static_bucket_arn  = aws_s3_bucket.static.arn
+  s3_uploads_bucket_arn = aws_s3_bucket.uploads.arn
+  celery_queue_arn      = aws_sqs_queue.celery_queue.arn
+  rds_resource_id       = module.rds.db_instance_resource_id
+  db_user_name          = var.db_user_name
+  docker_registry_url   = module.ecr.repository_url
+  private_subnet_ids    = module.vpc.private_subnets
+  secrets_name          = var.secrets_name
+  instance_type         = var.instance_type
+  use_spot_instances    = var.use_spot_instances
   # Add environment variables here
-  django_env             = merge(var.django_env, {
+  django_env = merge(var.django_env, {
     AWS_S3_BUCKET_STATIC_NAME  = aws_s3_bucket.static.bucket,
     AWS_S3_BUCKET_UPLOADS_NAME = aws_s3_bucket.uploads.bucket,
     AWS_REGION                 = data.aws_region.current.name,
     AWS_DEFAULT_REGION         = data.aws_region.current.name,
     SECRETS_MANAGER_NAME       = var.secrets_name,
     RDS_HOST                   = module.rds.db_instance_address,
+    PROJECT_NAME               = var.project_name,
     LB_URL                     = module.loadbalancer.url,
-   })
+  })
 }
 
 data "aws_acm_certificate" "domain_cert" {

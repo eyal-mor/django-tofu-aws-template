@@ -1,3 +1,47 @@
+locals {
+  log_group_name = "/aws/ec2/${var.project_name}"
+  LOG_CONFIG = {
+    "logs" : {
+      "logs_collected" : {
+        "files" : {
+          "collect_list" : [
+            {
+              "file_path" : "/opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log",
+              "log_group_name" : local.log_group_name,
+              "log_stream_name" : "{instance_id}_{hostname}",
+              "timezone" : "UTC"
+            },
+            {
+              "file_path" : "/var/log/cloud-init-output.log",
+              "log_group_name" : local.log_group_name,
+              "log_stream_name" : "{instance_id}_{hostname}",
+              "timezone" : "UTC"
+            },
+            {
+              "file_path" : "/var/log/cloud-init.log",
+              "log_group_name" : local.log_group_name,
+              "log_stream_name" : "{instance_id}_{hostname}",
+              "timezone" : "UTC"
+            },
+            {
+              "file_path" : "/var/log/yum.log",
+              "log_group_name" : local.log_group_name,
+              "log_stream_name" : "{instance_id}_{hostname}",
+              "timezone" : "UTC"
+            },
+            {
+              "file_path" : "/var/lib/docker/containers/**/*-json.log",
+              "log_group_name" : local.log_group_name,
+              "log_stream_name" : "{instance_id}_{hostname}",
+              "timezone" : "UTC"
+            }
+          ]
+        }
+      },
+      "log_stream_name" : "/ec2/catchall"
+    }
+  }
+}
 data "aws_region" "current_region" {}
 data "aws_caller_identity" "current_user" {}
 data "aws_secretsmanager_secret" "project_secrets" {
@@ -97,6 +141,11 @@ resource "aws_iam_role_policy_attachment" "ecr_managed" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
+resource "aws_iam_role_policy_attachment" "cloudwatch_managed" {
+  role       = aws_iam_role.ec2_instance_role.name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+}
+
 resource "aws_iam_role_policy" "ec2_instance_role_policy" {
   name = "${var.project_name}RolePolicy"
   role = aws_iam_role.ec2_instance_role.id
@@ -153,11 +202,12 @@ resource "aws_launch_template" "launch_template" {
     templatefile(
       "${path.module}/bin/user-data.tftpl",
       {
-        env_vars = var.django_env
+        env_vars = var.django_env,
         # This file is what causes the changes that create a deployment.
         # Without an update on this file, launch config will not update, which won't cause a rolling upgrade.
-        COMPOSE_FILE        = var.compose_file
-        DOCKER_REGISTRY_URL = var.docker_registry_url
+        COMPOSE_FILE        = var.compose_file,
+        DOCKER_REGISTRY_URL = var.docker_registry_url,
+        LOG_CONFIG          = local.LOG_CONFIG,
       }
     )
   )
@@ -208,5 +258,14 @@ resource "aws_autoscaling_group" "asg" {
   launch_template {
     id      = aws_launch_template.launch_template.id
     version = aws_launch_template.launch_template.latest_version
+  }
+}
+
+resource "aws_cloudwatch_log_group" "ec2_instance_logs" {
+  name              = local.log_group_name
+  retention_in_days = 3
+
+  tags = {
+    ExportToS3 = "true"
   }
 }
