@@ -242,7 +242,7 @@ resource "aws_launch_template" "launch_template" {
 
 resource "aws_autoscaling_group" "asg" {
   desired_capacity    = 1
-  max_size            = 2
+  max_size            = 3
   min_size            = 1
   vpc_zone_identifier = var.private_subnet_ids
 
@@ -253,6 +253,10 @@ resource "aws_autoscaling_group" "asg" {
 
   instance_refresh {
     strategy = "Rolling"
+    preferences {
+      min_healthy_percentage = 100
+      max_healthy_percentage = 200
+    }
   }
 
   launch_template {
