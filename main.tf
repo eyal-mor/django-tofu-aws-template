@@ -140,12 +140,63 @@ data "aws_cloudfront_cache_policy" "s3" {
   name = "Managed-CachingOptimized"
 }
 
-# data "aws_cloudfront_response_headers_policy" "cors_security" {
-#   name = "Managed-CORS-with-preflight-and-SecurityHeadersPolicy"
-# }
-
 data "aws_cloudfront_response_headers_policy" "security" {
   name = "Managed-CORS-with-preflight-and-SecurityHeadersPolicy"
+}
+
+resource "aws_cloudfront_origin_request_policy" "sessionid_origin_request_policy" {
+  name    = "OriginRequestCookieSessionID-${var.project_name}"
+  comment = "Stores the session ID in the cache key and forwards it to the origin."
+
+  cookies_config {
+    cookie_behavior = "whitelist"
+    cookies {
+      items = ["sessionid"]
+    }
+  }
+
+  headers_config {
+    header_behavior = "whitelist"
+    headers {
+      items = [
+        "origin",
+        "access-control-request-headers",
+        "access-control-request-method",
+      ]
+    }
+  }
+
+  query_strings_config {
+    query_string_behavior = "none"
+  }
+}
+
+resource "aws_cloudfront_cache_policy" "sessionid_cache_policy" {
+  name    = "OriginRequestCookieSessionID-${var.project_name}"
+  default_ttl = 86400
+  max_ttl     = 172800
+  min_ttl     = 43200
+
+
+  parameters_in_cache_key_and_forwarded_to_origin {
+    enable_accept_encoding_brotli = true
+    enable_accept_encoding_gzip = true
+
+    cookies_config {
+      cookie_behavior = "whitelist"
+      cookies {
+        items = ["sessionid"]
+      }
+    }
+
+    headers_config {
+      header_behavior = "none"
+    }
+
+    query_strings_config {
+      query_string_behavior = "none"
+    }
+  }
 }
 
 module "cdn" {
@@ -231,8 +282,8 @@ module "cdn" {
       viewer_protocol_policy = "redirect-to-https"
       compress               = true
 
-      origin_request_policy_id   = data.aws_cloudfront_origin_request_policy.s3.id
-      cache_policy_id            = data.aws_cloudfront_cache_policy.s3.id
+      origin_request_policy_id   = aws_cloudfront_origin_request_policy.sessionid_origin_request_policy.id
+      cache_policy_id            = aws_cloudfront_cache_policy.sessionid_cache_policy.id
       response_headers_policy_id = data.aws_cloudfront_response_headers_policy.security.id
       use_forwarded_values       = false
       lambda_function_association = {
