@@ -235,6 +235,11 @@ module "cdn" {
       cache_policy_id            = data.aws_cloudfront_cache_policy.s3.id
       response_headers_policy_id = data.aws_cloudfront_response_headers_policy.security.id
       use_forwarded_values       = false
+      lambda_function_association = {
+        origin-request = {
+          lambda_arn = var.uploads_origin_request_function_arn
+        }
+      }
     },
   ]
 
