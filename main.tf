@@ -216,13 +216,13 @@ module "cdn" {
   create_origin_access_identity = false
 
   origin_access_control = {
-    s3_static = {
+    "s3_static_${var.project_name}" = {
       description      = "Access Static Files"
       origin_type      = "s3",
       signing_behavior = "always",
       signing_protocol = "sigv4",
     },
-    s3_upload = {
+    "s3_upload-${var.project_name}" = {
       description      = "Access Uploaded Files",
       origin_type      = "s3",
       signing_behavior = "always",
@@ -243,12 +243,12 @@ module "cdn" {
 
     s3_static = {
       domain_name           = aws_s3_bucket.static.bucket_regional_domain_name
-      origin_access_control = "s3_static"
+      origin_access_control = "s3_static_${var.project_name}"
     }
 
     s3_upload = {
       domain_name           = aws_s3_bucket.uploads.bucket_regional_domain_name
-      origin_access_control = "s3_upload"
+      origin_access_control = "s3_upload-${var.project_name}"
     }
   }
 
