@@ -222,7 +222,7 @@ module "cdn" {
       signing_behavior = "always",
       signing_protocol = "sigv4",
     },
-    "s3_upload-${var.project_name}" = {
+    "s3_upload_${var.project_name}" = {
       description      = "Access Uploaded Files",
       origin_type      = "s3",
       signing_behavior = "always",
@@ -241,14 +241,14 @@ module "cdn" {
       }
     }
 
-    s3_static = {
+    "s3_static_${var.project_name}" = {
       domain_name           = aws_s3_bucket.static.bucket_regional_domain_name
       origin_access_control = "s3_static_${var.project_name}"
     }
 
-    s3_upload = {
+    "s3_upload_${var.project_name}" = {
       domain_name           = aws_s3_bucket.uploads.bucket_regional_domain_name
-      origin_access_control = "s3_upload-${var.project_name}"
+      origin_access_control = "s3_upload_${var.project_name}"
     }
   }
 
@@ -267,7 +267,7 @@ module "cdn" {
   ordered_cache_behavior = [
     {
       path_pattern           = "/static/*"
-      target_origin_id       = "s3_static"
+      target_origin_id       = "s3_static_${var.project_name}"
       viewer_protocol_policy = "redirect-to-https"
       compress               = true
 
@@ -278,7 +278,7 @@ module "cdn" {
     },
     {
       path_pattern           = "/uploads/*"
-      target_origin_id       = "s3_upload"
+      target_origin_id       = "s3_upload_${var.project_name}"
       viewer_protocol_policy = "redirect-to-https"
       compress               = true
 
