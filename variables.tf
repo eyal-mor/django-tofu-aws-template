@@ -69,11 +69,6 @@ variable "use_spot_instances" {
   default     = false
 }
 
-variable "uploads_origin_request_function_arn" {
-  type = string
-  description = "The ARN of the Lambda function that will be used for the origin request trigger"
-}
-
 variable "uploads_trusted_key_groups" {
   type = list(string)
   description = "The key groups that are allowed to access the uploads bucket"
