@@ -104,6 +104,14 @@ data "aws_iam_policy_document" "policy" {
 
   statement {
     actions = [
+      "ses:SendRawEmail",
+    ]
+
+    resources = ["*"]
+  }
+
+  statement {
+    actions = [
       "rds-db:connect",
     ]
 
