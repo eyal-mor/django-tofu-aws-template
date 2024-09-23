@@ -16,6 +16,7 @@ resource "aws_lb" "loadbalancer" {
 
   subnets                    = var.subnet_ids
   enable_deletion_protection = false
+  preserve_host_header = true
 }
 
 resource "aws_lb_target_group" "tg" {
