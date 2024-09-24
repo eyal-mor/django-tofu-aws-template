@@ -73,3 +73,15 @@ variable "uploads_trusted_key_groups" {
   type = list(string)
   description = "The key groups that are allowed to access the uploads bucket"
 }
+
+variable "enable_db_backups" {
+  type = bool
+  description = "Enable RDS backups"
+  default = false
+}
+
+variable "kms_db_owner_arns" {
+  type = list(string)
+  description = "List of ARNs of the IAM roles that should have access to the KMS key"
+  default = []
+}

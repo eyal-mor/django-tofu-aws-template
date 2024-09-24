@@ -1,4 +1,10 @@
 data "aws_region" "current" {}
+data "aws_caller_identity" "current_user" {}
+
+data "aws_iam_roles" "roles" {
+  name_regex = "AWSReservedSSO_AdministratorAccess_.*"
+  path_prefix = "/aws-reserved/sso.amazonaws.com/"
+}
 
 resource "random_password" "password" {
   length  = 32
@@ -23,8 +29,9 @@ module "db" {
 
   vpc_security_group_ids = var.db_sg_ids
 
-  maintenance_window = "Fri:00:00-Fri:03:00"
-  backup_window      = "16:00-19:00"
+  maintenance_window = "Sat:00:00-Sat:03:00"
+  backup_window      = "03:00-06:00"
+  backup_retention_period = 7
 
   # IL Central 1 does not support managing master user password with secrets manager
   # https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.RDS_Fea_Regions_DB-eng.Feature.SecretsManager.html
@@ -54,3 +61,41 @@ module "db" {
 }
 
 # TODO: Snapshots & Backups support.
+
+module "kms" {
+  count = var.enable_db_backups ? 1 : 0
+  source      = "terraform-aws-modules/kms/aws"
+  description = "KMS key for cross region automated backups replication"
+  enable_default_policy = false
+
+  key_owners = concat(
+    tolist(data.aws_iam_roles.roles.arns),
+    var.kms_db_owner_arns,
+  )
+
+  key_statements = [{
+    sid       = "Default"
+    actions   = ["kms:*"]
+    resources = ["*"]
+
+    principals = [{
+      type        = "AWS"
+      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current_user.account_id}:root"]
+    }]
+
+    conditions = [{
+      test     = "StringEquals"
+      variable = "aws:PrincipalType"
+      values   = ["Account"]
+    }]
+  }]
+}
+
+module "db_automated_backups_replication" {
+  count = var.enable_db_backups ? 1 : 0
+
+  source = "terraform-aws-modules/rds/aws//modules/db_instance_automated_backups_replication"
+
+  source_db_instance_arn = module.db.db_instance_arn
+  kms_key_arn            = module.kms[0].key_arn
+}
