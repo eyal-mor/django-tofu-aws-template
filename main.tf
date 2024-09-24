@@ -68,7 +68,6 @@ module "rds" {
   db_subnet_ids = module.vpc.database_subnets
   project_name  = var.project_name
   enable_db_backups = var.enable_db_backups
-  kms_db_owner_arns = var.kms_db_owner_arns
 }
 
 module "loadbalancer" {

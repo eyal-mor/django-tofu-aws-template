@@ -31,7 +31,7 @@ module "db" {
 
   maintenance_window = "Sat:00:00-Sat:03:00"
   backup_window      = "03:00-06:00"
-  backup_retention_period = 7
+  backup_retention_period = var.enable_db_backups ? 7 : 0
 
   # IL Central 1 does not support managing master user password with secrets manager
   # https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.RDS_Fea_Regions_DB-eng.Feature.SecretsManager.html

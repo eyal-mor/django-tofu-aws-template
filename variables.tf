@@ -79,9 +79,3 @@ variable "enable_db_backups" {
   description = "Enable RDS backups"
   default = false
 }
-
-variable "kms_db_owner_arns" {
-  type = list(string)
-  description = "List of ARNs of the IAM roles that should have access to the KMS key"
-  default = []
-}
