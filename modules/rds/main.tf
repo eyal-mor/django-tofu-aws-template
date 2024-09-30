@@ -18,7 +18,7 @@ module "db" {
   identifier = var.project_name
 
   engine            = "postgres"
-  engine_version    = "16.1"
+  engine_version    = "16.3"
   instance_class    = "db.t3.micro"
   allocated_storage = 20
 
