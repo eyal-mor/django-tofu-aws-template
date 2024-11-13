@@ -32,7 +32,7 @@ module "fck-nat" {
   subnet_id            = var.public_subnet_id
   ha_mode              = true  # Ensure a NAT instance is always available
   use_cloudwatch_agent = false # Disable Cloudwatch agent and have metrics reported
-  use_spot_instances   = true  # Use spot instance for lowest costs
+  use_spot_instances   = var.use_spot_instances  # Use spot instance for lowest costs
   ami_id               = data.aws_ami.nat.id
   ebs_root_volume_size = 8
 

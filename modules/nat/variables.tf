@@ -13,3 +13,8 @@ variable "project_name" {
 variable "public_subnet_id" {
   type = string
 }
+
+variable "use_spot_instances" {
+  type = bool
+  default = true
+}

@@ -26,6 +26,7 @@ module "nat" {
   vpc_id                  = module.vpc.vpc_id
   project_name            = var.project_name
   public_subnet_id        = module.vpc.public_subnets[0]
+  use_spot_instances      = var.nat_use_spot_instances
 }
 
 module "sg" {

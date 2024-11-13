@@ -79,3 +79,8 @@ variable "enable_db_backups" {
   description = "Enable RDS backups"
   default = false
 }
+
+variable "nat_use_spot_instances" {
+  type = bool
+  default = true
+}
