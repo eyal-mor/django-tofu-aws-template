@@ -32,3 +32,8 @@ variable "security_group_id" {
   description = "value of the security group id"
   type        = string
 }
+
+variable "threshold_5xx" {
+  description = "value of the 5xx threshold to trigger an alarm"
+  type        = number
+}

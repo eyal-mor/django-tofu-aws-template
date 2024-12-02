@@ -84,3 +84,14 @@ variable "nat_use_spot_instances" {
   type = bool
   default = true
 }
+
+variable "threshold_5xx" {
+  type = number
+  default = 30
+}
+
+variable "alarm_email" {
+  type = string
+  description = "Email to send the alarm to"
+  default = ""
+}

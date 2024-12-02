@@ -81,6 +81,7 @@ module "loadbalancer" {
   vpc_id             = module.vpc.vpc_id
   target_port        = var.target_port
   public_cidr_blocks = module.vpc.public_subnets
+  threshold_5xx      = var.threshold_5xx
 }
 
 resource "aws_secretsmanager_secret" "project_secrets" {
@@ -343,4 +344,10 @@ resource "aws_s3_bucket_policy" "oac_static" {
       },
     ],
   })
+}
+
+resource "aws_sns_topic_subscription" "sns-topic" {
+  topic_arn = module.loadbalancer.alarm_sns_topic_arn
+  protocol  = "email"
+  endpoint  = var.alarm_email
 }
