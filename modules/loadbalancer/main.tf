@@ -93,7 +93,6 @@ resource "aws_cloudwatch_metric_alarm" "alert_5xx_target" {
   alarm_actions       = [aws_sns_topic.alerts_5xx.arn]
   ok_actions          = [aws_sns_topic.alerts_5xx.arn]
   dimensions = {
-    TargetGroup  = aws_lb_target_group.tg.arn_suffix
     LoadBalancer = aws_lb.loadbalancer.arn_suffix
   }
 }
@@ -112,7 +111,6 @@ resource "aws_cloudwatch_metric_alarm" "alert_5xx" {
   alarm_actions       = [aws_sns_topic.alerts_5xx.arn]
   ok_actions          = [aws_sns_topic.alerts_5xx.arn]
   dimensions = {
-    TargetGroup  = aws_lb_target_group.tg.arn_suffix
     LoadBalancer = aws_lb.loadbalancer.arn_suffix
   }
 }
