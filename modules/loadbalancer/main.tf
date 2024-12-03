@@ -79,14 +79,33 @@ resource "aws_sns_topic" "alerts_5xx" {
   name = "5xxAlerts"
 }
 
+resource "aws_cloudwatch_metric_alarm" "alert_5xx_target" {
+  alarm_name          = "${var.project_name}-5xxErrorTargetCount"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 1
+  metric_name         = "HTTPCode_Target_5XX_Count"
+  namespace           = "AWS/ApplicationELB"
+  period              = 300 # 5 minutes
+  statistic           = "Sum"
+  threshold           = var.threshold_5xx
+  alarm_description   = "Number of healthy nodes in Target Group"
+  actions_enabled     = "true"
+  alarm_actions       = [aws_sns_topic.alerts_5xx.arn]
+  ok_actions          = [aws_sns_topic.alerts_5xx.arn]
+  dimensions = {
+    TargetGroup  = aws_lb_target_group.tg.arn_suffix
+    LoadBalancer = aws_lb.loadbalancer.arn_suffix
+  }
+}
+
 resource "aws_cloudwatch_metric_alarm" "alert_5xx" {
   alarm_name          = "${var.project_name}-5xxErrorCount"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = 1
-  metric_name         = "HTTPCode_Target_5XX_Count"
-  namespace           = "AWS/NetworkELB"
+  metric_name         = "HTTPCode_ELB_5XX_Count"
+  namespace           = "AWS/ApplicationELB"
   period              = 300 # 5 minutes
-  statistic           = "Average"
+  statistic           = "Sum"
   threshold           = var.threshold_5xx
   alarm_description   = "Number of healthy nodes in Target Group"
   actions_enabled     = "true"
