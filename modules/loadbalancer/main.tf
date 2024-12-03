@@ -76,7 +76,7 @@ resource "aws_lb_listener" "forward_redirect" {
 }
 
 resource "aws_sns_topic" "alerts_5xx" {
-  name = "5xxAlerts"
+  name = "${var.project_name}-5xxAlerts"
 }
 
 resource "aws_cloudwatch_metric_alarm" "alert_5xx_target" {
