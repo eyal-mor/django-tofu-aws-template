@@ -347,6 +347,8 @@ resource "aws_s3_bucket_policy" "oac_static" {
 }
 
 resource "aws_sns_topic_subscription" "sns-topic" {
+  count = length(var.alarm_email) > 0 ? 1 : 0
+
   topic_arn = module.loadbalancer.alarm_sns_topic_arn
   protocol  = "email"
   endpoint  = var.alarm_email

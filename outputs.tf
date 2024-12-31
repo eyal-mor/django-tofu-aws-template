@@ -88,3 +88,7 @@ output "db_instance_resource_id" {
 output "url" {
   value = module.loadbalancer.url
 }
+
+output "aws_sns_topic_subscription_arn" {
+  value = length(aws_sns_topic_subscription.sns-topic) > 0 ? aws_sns_topic_subscription.sns-topic[0].arn : ""
+}
