@@ -43,5 +43,5 @@ docker-compose up -d
 
 # Shutdown/Terminate the instance on Saturday for a refresh
 crontab<<EOF
-$(shuf -i 1-59 -n 1) $(shuf -i 0-4 -n 1) * * 6 /bin/bash -c "shutdown"
+$(shuf -i 1-59 -n 1) $(shuf -i 0-4 -n 1) * * 6 /usr/sbin/shutdown -h now
 EOF
