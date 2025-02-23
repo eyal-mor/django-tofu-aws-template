@@ -220,6 +220,7 @@ resource "aws_launch_template" "launch_template" {
     )
   )
 
+  instance_initiated_shutdown_behavior = "terminate"
   # TODO: Fix SSH key setup.
   # key_name = var.project_name
 

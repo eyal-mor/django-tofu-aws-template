@@ -2,9 +2,11 @@
 
 
 sudo dnf update -y
-sudo dnf install -y docker jq amazon-ecr-credential-helper amazon-cloudwatch-agent
+sudo dnf install -y docker jq amazon-ecr-credential-helper amazon-cloudwatch-agent cronie
 sudo systemctl start docker
 sudo systemctl enable docker
+sudo systemctl start crond.service
+sudo systemctl enable crond.service
 sudo usermod -aG docker ec2-user
 newgrp docker
 sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
@@ -39,3 +41,7 @@ EOL
 cd /home/ec2-user/
 docker-compose up -d
 
+# Shutdown/Terminate the instance on Saturday for a refresh
+crontab<<EOF
+$(shuf -i 1-59 -n 1) $(shuf -i 0-4 -n 1) * * 6 /bin/bash -c "shutdown"
+EOF
