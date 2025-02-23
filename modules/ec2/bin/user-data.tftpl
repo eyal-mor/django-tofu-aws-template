@@ -42,6 +42,8 @@ cd /home/ec2-user/
 docker-compose up -d
 
 # Shutdown/Terminate the instance on Saturday for a refresh
+# Randomly select a minute and hour between 0-59 and 0-4 respectively
+# Keep in mind that time may be in UTC, so adjust accordingly.
 crontab<<EOF
-$(shuf -i 1-59 -n 1) $(shuf -i 0-4 -n 1) * * 6 /usr/sbin/shutdown -h now
+$(shuf -i 1-59 -n 1) $(shuf -i 0-4 -n 1) * * 6 /usr/sbin/shutdown
 EOF
